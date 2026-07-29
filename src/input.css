@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass-panel {
+    background: rgba(16, 20, 25, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(62, 72, 81, 0.25);
+  }
+
+  .glass-panel-light {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(200, 200, 200, 0.4);
+  }
+
+  .prime-border {
+    position: relative;
+    background: linear-gradient(to right, #00b0ff, #00c853);
+    padding: 1px;
+  }
+
+  .prime-inner {
+    background: #0a0e13;
+  }
+
+  .ticker-glow-up {
+    text-shadow: 0 0 12px rgba(0, 200, 83, 0.5);
+  }
+
+  .ticker-glow-down {
+    text-shadow: 0 0 12px rgba(240, 143, 10, 0.5);
+  }
+
+  .candlestick-green {
+    fill: #00c853;
+    stroke: #00c853;
+  }
+
+  .candlestick-red {
+    fill: #f08f0a;
+    stroke: #f08f0a;
+  }
+
+  .sparkline-gradient {
+    background: linear-gradient(to bottom, rgba(0, 176, 255, 0.1), transparent);
+  }
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-animate {
+  display: flex;
+  animation: ticker-scroll 35s linear infinite;
+}
+
+/* Custom scrollbar configurations */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #0a0e13;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #31353b;
+}
+
+/* Custom Animations */
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
