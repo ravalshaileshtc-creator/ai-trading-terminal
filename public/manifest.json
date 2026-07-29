@@ -1,0 +1,24 @@
+{
+  "name": "TradeMaster Terminal",
+  "short_name": "TradeMaster",
+  "description": "Comprehensive Intraday Trading, Technical Analysis, and Paper Trading PWA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F14",
+  "theme_color": "#0B0F14",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/10046/10046648.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/10046/10046648.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
