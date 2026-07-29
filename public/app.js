@@ -963,14 +963,19 @@ function updatePortfolioUI() {
   // Today's total stats
   let totalPnl = 0;
   state.activePositions.forEach(p => {
-    totalPnl += p.pnl;
+    totalPnl += (p.unrealized_pnl !== undefined ? p.unrealized_pnl : (p.pnl || 0));
   });
   const pnlEl = document.getElementById('portfolio-today-pnl');
-  pnlEl.innerText = `${totalPnl >= 0 ? '+' : ''}₹${totalPnl.toFixed(2)} active P&L`;
-  pnlEl.className = `font-semibold ${totalPnl >= 0 ? 'text-secondary' : 'text-error'}`;
+  if (pnlEl) {
+    pnlEl.innerText = `${totalPnl >= 0 ? '+' : ''}₹${totalPnl.toFixed(2)} active P&L`;
+    pnlEl.className = `font-semibold ${totalPnl >= 0 ? 'text-secondary' : 'text-error'}`;
+  }
   
-  document.getElementById('portfolio-total-positions').innerText = `${state.activePositions.length} Active Trades`;
-  document.getElementById('active-positions-count').innerText = `${state.activePositions.length} Active`;
+  const totalPosEl = document.getElementById('portfolio-total-positions');
+  if (totalPosEl) totalPosEl.innerText = `${state.activePositions.length} Active Trades`;
+  
+  const countEl = document.getElementById('active-positions-count');
+  if (countEl) countEl.innerText = `${state.activePositions.length} Active`;
 
   // Active Positions Table
   const tbody = document.getElementById('active-positions-tbody');
@@ -983,7 +988,8 @@ function updatePortfolioUI() {
       `;
     } else {
       tbody.innerHTML = state.activePositions.map(pos => {
-        const isGreen = pos.pnl >= 0;
+        const pnlVal = pos.unrealized_pnl !== undefined ? pos.unrealized_pnl : (pos.pnl || 0);
+        const isGreen = pnlVal >= 0;
         const colorClass = isGreen ? 'text-secondary' : 'text-error';
         const typeClass = pos.type === 'BUY' ? 'bg-secondary/15 text-secondary border-secondary/30' : 'bg-tertiary-container/15 text-tertiary-container border-tertiary-container/30';
         const currencySymbol = '₹';
@@ -998,7 +1004,7 @@ function updatePortfolioUI() {
             <td class="p-4 font-semibold">${pos.size}</td>
             <td class="p-4 font-data-mono text-xs">${currencySymbol}${pos.entry_price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
             <td class="p-4 text-right font-data-mono font-bold ${colorClass}">
-              ${pos.status === 'PENDING' ? '<span class="text-on-surface-variant italic text-xs">Pending Exec</span>' : (isGreen ? '+' : '') + currencySymbol + pos.pnl.toFixed(2)}
+              ${pos.status === 'PENDING' ? '<span class="text-on-surface-variant italic text-xs">Pending Exec</span>' : (isGreen ? '+' : '') + currencySymbol + pnlVal.toFixed(2)}
             </td>
             <td class="p-4 text-center">
               <button onclick="closeTradePosition(${pos.id})" class="text-error text-xs font-bold uppercase hover:bg-error-container/20 px-2.5 py-1 rounded transition-colors border border-error/20">
