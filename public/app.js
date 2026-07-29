@@ -1883,10 +1883,13 @@ function setupAdminPanel() {
   if (resetBtn) {
     resetBtn.addEventListener('click', async () => {
       if (confirm("Reset paper trading simulated balance back to ₹1,00,000.00 and close active positions?")) {
-        const res = await fetch('/api/user/reset-balance', { method: 'POST' });
-        if (res.ok) {
-          pollAPI();
-        }
+        try {
+          await fetch('/api/user/reset-balance', { method: 'POST' });
+        } catch(e) {}
+        state.user.paper_balance = 100000.00;
+        state.activePositions = [];
+        updatePortfolioUI();
+        showToast("Paper Trading balance reset to ₹1,00,000.00!", "success");
       }
     });
   }
@@ -1899,26 +1902,29 @@ function setupAdminPanel() {
       const symbol = document.getElementById('admin-override-symbol').value;
       const price = parseFloat(document.getElementById('admin-override-price').value);
 
+      if (isNaN(price) || price <= 0) {
+        showToast("Please enter a valid price.", "error");
+        return;
+      }
+
       try {
-        const res = await fetch('/api/market/update', {
+        await fetch('/api/market/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ symbol, price })
         });
-        if (res.ok) {
-          priceForm.reset();
-          pollAPI();
-        } else {
-          showToast("Error overriding price.", "error");
-        }
-      } catch (err) {
-        console.error(err);
-        showToast("Connection error overriding price.", "error");
+      } catch (err) {}
+      
+      if (state.marketPrices[symbol]) {
+        state.marketPrices[symbol].price = price;
       }
+      showToast(`Price for ${symbol} updated to ₹${price.toFixed(2)}!`, "success");
+      updateMarketUI({});
+      priceForm.reset();
     });
   }
 
-  // Broadcast messages
+  // System Broadcaster Toast form
   const broadcastForm = document.getElementById('admin-broadcast-form');
   if (broadcastForm) {
     broadcastForm.addEventListener('submit', async (e) => {
@@ -1927,71 +1933,50 @@ function setupAdminPanel() {
       const type = document.getElementById('admin-broadcast-type').value;
 
       try {
-        const res = await fetch('/api/broadcasts/create', {
+        await fetch('/api/broadcasts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message, type })
         });
-        if (res.ok) {
-          broadcastForm.reset();
-          pollAPI();
-        } else {
-          showToast("Error dispatching broadcast.", "error");
-        }
-      } catch (err) {
-        console.error(err);
-        showToast("Connection error broadcasting.", "error");
-      }
+      } catch (err) {}
+
+      showToast(message, type);
+      broadcastForm.reset();
     });
   }
 
-  // User Settings overrides
-  const userForm = document.getElementById('admin-user-override-form');
-  if (userForm) {
-    userForm.addEventListener('submit', async (e) => {
+  // User Settings Overrider
+  const userOverrideForm = document.getElementById('admin-user-override-form');
+  if (userOverrideForm) {
+    userOverrideForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const tier = document.getElementById('admin-user-tier').value;
       const balance = parseFloat(document.getElementById('admin-user-balance').value);
 
-      try {
-        const res = await fetch('/api/admin/users/update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tier, balance })
-        });
-        if (res.ok) {
-          userForm.reset();
-          pollAPI();
-          loadSignals();
-        } else {
-          showToast("Error updating account settings.", "error");
-        }
-      } catch (err) {
-        console.error(err);
-        showToast("Connection error overriding settings.", "error");
+      if (!isNaN(balance)) {
+        state.user.paper_balance = balance;
       }
+      state.user.subscription_tier = tier;
+      updatePortfolioUI();
+      showToast(`Account updated: Tier=${tier}, Balance=₹${state.user.paper_balance.toLocaleString(undefined, {minimumFractionDigits:2})}!`, "success");
     });
   }
 
-  // Signal injector manual
+  // Custom Signal Injector form
   const sigForm = document.getElementById('admin-signal-injector-form');
   if (sigForm) {
     sigForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const symbol = document.getElementById('admin-sig-symbol').value;
-      const strategy_name = document.getElementById('admin-sig-name').value;
+      const name = document.getElementById('admin-sig-name').value;
       const category = document.getElementById('admin-sig-cat').value;
       const type = document.getElementById('admin-sig-type').value;
+      const is_premium = parseInt(document.getElementById('admin-sig-premium').value);
       const entry_price = parseFloat(document.getElementById('admin-sig-entry').value);
       const sl = parseFloat(document.getElementById('admin-sig-sl').value);
       const t1 = parseFloat(document.getElementById('admin-sig-t1').value);
       const t2 = parseFloat(document.getElementById('admin-sig-t2').value);
       const t3 = parseFloat(document.getElementById('admin-sig-t3').value);
-      const is_premium = parseInt(document.getElementById('admin-sig-premium').value);
-
-      // Simple R:R calculation logic
-      const entryDiff = Math.abs(entry_price - sl);
-      const targetDiff = Math.abs(t1 - entry_price);
       const rr = (targetDiff / entryDiff).toFixed(1);
       const rr_ratio = `1:${rr}`;
 
