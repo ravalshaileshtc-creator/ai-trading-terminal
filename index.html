@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradeMaster - Intraday & Paper Trading Terminal</title>
+  
+  <!-- PWA Settings -->
+  <link rel="manifest" href="/public/manifest.json" />
+  <meta name="theme-color" content="#0B0F14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <!-- Lucide Script for rendering icons dynamically -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Tailwind Output Stylesheet -->
+  <link href="/public/style.css" rel="stylesheet" />
+</head>
+<body class="bg-background text-on-surface font-body-base overflow-x-hidden min-h-screen flex flex-col transition-colors duration-300">
+
+  <!-- Error Boundary Banner -->
+  <div id="error-boundary-banner" class="fixed top-0 left-0 w-full bg-error text-white text-xs p-2 z-[999] hidden flex justify-between items-center">
+    <span id="error-boundary-msg"></span>
+    <button onclick="this.parentElement.classList.add('hidden')" class="font-bold underline ml-2">Close</button>
+  </div>
+  <script>
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      const banner = document.getElementById('error-boundary-banner');
+      const msgEl = document.getElementById('error-boundary-msg');
+      if (banner && msgEl) {
+        msgEl.innerText = 'Client Error: ' + msg + ' at ' + (url ? url.split('/').pop() : 'inline') + ':' + lineNo;
+        banner.classList.remove('hidden');
+      }
+      return false;
+    };
+  </script>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-20 right-4 z-[100] flex flex-col gap-3 w-80 max-w-full"></div>
+
+  <!-- Unified Top App Bar -->
+  <header class="bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm fixed top-0 z-40 w-full flex justify-between items-center px-6 h-16 transition-colors">
+    <div class="flex items-center gap-4">
+      <button id="sidebar-toggle-btn" class="active:scale-95 transition-transform duration-150 p-2 hover:bg-surface-container-high rounded-full md:hidden">
+        <i data-lucide="menu" class="text-primary w-5 h-5"></i>
+      </button>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+          <i data-lucide="trending-up" class="text-white w-5 h-5"></i>
+        </div>
+        <h1 class="font-display-lg text-xl font-extrabold text-primary tracking-tight">TradeMaster</h1>
+      </div>
+      <!-- Desktop Tab Bar -->
+      <nav class="hidden md:flex gap-3.5 lg:gap-5 ml-4 lg:ml-8 overflow-x-auto whitespace-nowrap scrollbar-none">
+        <button data-view-target="dashboard" class="nav-tab-btn font-label-xs text-primary font-bold transition-all relative py-2">
+          <span data-i18n="nav_dashboard">Dashboard</span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary"></div>
+        </button>
+        <button data-view-target="signals" class="nav-tab-btn font-label-xs text-on-surface-variant hover:text-primary font-bold transition-all relative py-2">
+          <span data-i18n="nav_signals">Signals</span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary hidden"></div>
+        </button>
+        <button data-view-target="trade" class="nav-tab-btn font-label-xs text-on-surface-variant hover:text-primary font-bold transition-all relative py-2">
+          <span data-i18n="nav_trade">Trade</span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary hidden"></div>
+        </button>
+        <button data-view-target="journal" class="nav-tab-btn font-label-xs text-on-surface-variant hover:text-primary font-bold transition-all relative py-2">
+          <span data-i18n="nav_journal">Journal</span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary hidden"></div>
+        </button>
+        <button data-view-target="subscription" class="nav-tab-btn font-label-xs text-on-surface-variant hover:text-primary font-bold transition-all relative py-2">
+          <span data-i18n="nav_subscription">Go Pro</span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary hidden"></div>
+        </button>
+        <button data-view-target="admin" class="nav-tab-btn font-label-xs text-on-surface-variant hover:text-primary font-bold transition-all relative py-2">
+          <span data-i18n="nav_admin">Admin</span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary hidden"></div>
+        </button>
+        <button data-view-target="scanner" class="nav-tab-btn font-label-xs text-on-surface-variant hover:text-primary font-bold transition-all relative py-2">
+          <span>Scanner</span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary hidden"></div>
+        </button>
+        <button data-view-target="news" class="nav-tab-btn font-label-xs text-on-surface-variant hover:text-primary font-bold transition-all relative py-2">
+          <span>News AI</span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary hidden"></div>
+        </button>
+        <button data-view-target="ai" class="nav-tab-btn font-label-xs text-on-surface-variant hover:text-primary font-bold transition-all relative py-2 flex items-center gap-1.5">
+          <span class="relative flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-primary animate-pulse inline-block"></span>
+            <span data-i18n="nav_ai">AI Agent</span>
+          </span>
+          <div class="nav-indicator absolute bottom-0 left-0 w-full h-0.5 bg-primary hidden"></div>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Header Controls -->
+    <div class="flex items-center gap-3">
+      <!-- Language Selector Toggle -->
+      <button id="language-toggle" class="px-2.5 py-1 text-xs font-bold border border-outline-variant/50 rounded-lg hover:bg-surface-variant transition-colors flex items-center gap-1">
+        <i data-lucide="languages" class="w-3.5 h-3.5"></i>
+        <span id="language-label">EN</span>
+      </button>
+
+      <!-- Theme Switcher Toggle -->
+      <button id="theme-toggle" class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+        <i id="theme-icon" data-lucide="sun" class="w-5 h-5 text-primary"></i>
+      </button>
+
+      <!-- User Tier Status Badge -->
+      <div id="user-tier-badge" class="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-surface-container border border-outline-variant/30 rounded-full font-label-sm">
+        <span class="w-2 h-2 rounded-full bg-secondary"></span>
+        <span id="header-tier-name" class="text-on-surface font-semibold uppercase tracking-wider text-[10px]">Free</span>
+      </div>
+
+      <!-- Quick Install PWA Button -->
+      <button id="pwa-install-btn" class="hidden bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 px-3 py-1 rounded-full text-xs font-bold items-center gap-1 active:scale-95 transition-all">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+        Install
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Sidebar Menu overlay -->
+  <div id="sidebar-overlay" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden transition-opacity duration-300"></div>
+  <aside id="mobile-sidebar" class="fixed top-0 left-0 z-50 w-64 h-full bg-surface border-r border-outline-variant/30 p-6 flex flex-col justify-between transform -translate-x-full transition-transform duration-300 ease-in-out">
+    <div class="flex flex-col gap-6">
+      <div class="flex justify-between items-center">
+        <h2 class="font-display-lg text-lg font-bold text-primary">TradeMaster</h2>
+        <button id="sidebar-close-btn" class="p-2 hover:bg-surface-container-high rounded-full">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <nav class="flex flex-col gap-2">
+        <button data-view-target="dashboard" class="mobile-nav-btn flex items-center gap-3 p-3 rounded-xl bg-primary/15 text-primary font-bold text-left">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+          <span data-i18n="nav_dashboard">Dashboard</span>
+        </button>
+        <button data-view-target="signals" class="mobile-nav-btn flex items-center gap-3 p-3 rounded-xl hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-left">
+          <i data-lucide="zap" class="w-5 h-5"></i>
+          <span data-i18n="nav_signals">Signals</span>
+        </button>
+        <button data-view-target="trade" class="mobile-nav-btn flex items-center gap-3 p-3 rounded-xl hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-left">
+          <i data-lucide="candlestick-chart" class="w-5 h-5"></i>
+          <span data-i18n="nav_trade">Trade</span>
+        </button>
+        <button data-view-target="journal" class="mobile-nav-btn flex items-center gap-3 p-3 rounded-xl hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-left">
+          <i data-lucide="book-open" class="w-5 h-5"></i>
+          <span data-i18n="nav_journal">Journal</span>
+        </button>
+        <button data-view-target="subscription" class="mobile-nav-btn flex items-center gap-3 p-3 rounded-xl hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-left">
+          <i data-lucide="award" class="w-5 h-5"></i>
+          <span data-i18n="nav_subscription">Go Pro</span>
+        </button>
+        <button data-view-target="admin" class="mobile-nav-btn flex items-center gap-3 p-3 rounded-xl hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-left">
+          <i data-lucide="lock" class="w-5 h-5"></i>
+          <span data-i18n="nav_admin">Admin</span>
+        </button>
+        <button data-view-target="ai" class="mobile-nav-btn flex items-center gap-3 p-3 rounded-xl hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-left">
+          <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+          <span data-i18n="nav_ai">AI Agent</span>
+        </button>
+      </nav>
+    </div>
+    <div class="border-t border-outline-variant/20 pt-4 text-center">
+      <p class="text-[10px] text-on-surface-variant">TradeMaster PWA v1.0.0</p>
+    </div>
+  </aside>
+
+  <!-- Main Canvas Container -->
+  <main class="flex-grow pt-20 pb-28 md:pb-12 max-w-7xl w-full mx-auto px-4 md:px-8">
+
+    <!-- VIEW 1: DASHBOARD -->
+    <section id="view-dashboard" class="view-section active fade-in flex flex-col gap-6">
+      
+      <!-- Top Running Ticker -->
+      <div class="w-full overflow-hidden bg-surface-container-lowest border border-outline-variant/30 py-2.5 rounded-xl shadow-sm">
+        <div id="scrolling-ticker" class="ticker-animate whitespace-nowrap gap-12 items-center flex px-4">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Widgets (4 columns) -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+          
+          <!-- Paper Trading Widget -->
+          <div class="rounded-xl prime-border shadow-[0_0_25px_rgba(0,176,255,0.06)] overflow-hidden">
+            <div class="prime-inner p-6 flex flex-col h-full">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <p class="font-label-xs text-secondary uppercase tracking-widest text-[9px]" data-i18n="sim_env">Simulated Environment</p>
+                  <h3 class="font-headline-md text-lg text-on-surface mt-1 font-bold" data-i18n="paper_trading">Paper Trading</h3>
+                </div>
+                <div class="p-2 bg-secondary/10 rounded-lg text-secondary">
+                  <i data-lucide="wallet" class="w-5 h-5"></i>
+                </div>
+              </div>
+              <div class="my-4">
+                <p class="font-label-xs text-on-surface-variant" data-i18n="curr_balance">Current Balance</p>
+                <p id="dash-paper-balance" class="font-display-lg text-3xl font-extrabold tracking-tight text-secondary">₹1,00,000.00</p>
+              </div>
+              <div class="flex gap-3 mt-4">
+                <button data-view-target="trade" class="flex-grow bg-secondary text-white py-2.5 rounded-xl font-label-xs uppercase active:scale-95 transition-all font-bold hover:brightness-110 flex items-center justify-center gap-1">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                  <span data-i18n="new_order">New Order</span>
+                </button>
+                <button id="dash-reset-balance-btn" class="px-3.5 border border-outline-variant hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface rounded-xl active:scale-95 transition-all">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Gainers & Top Losers Today -->
+          <div class="glass-panel rounded-xl p-5 shadow-sm flex flex-col gap-4">
+            <div class="flex justify-between items-center border-b border-outline-variant/10 pb-2">
+              <h4 class="font-label-xs text-on-surface font-bold uppercase flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="w-4 h-4 text-secondary"></i>
+                Top Gainers & Losers
+              </h4>
+              <span class="text-[9px] text-on-surface-variant font-bold bg-surface-container px-2 py-0.5 rounded uppercase">NSE/BSE</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Top Gainers -->
+              <div class="flex flex-col gap-2">
+                <p class="text-[9px] text-secondary font-bold uppercase tracking-wider flex items-center gap-1">
+                  <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Gainers
+                </p>
+                <div id="dash-top-gainers" class="flex flex-col gap-1.5">
+                  <!-- Dynamic -->
+                </div>
+              </div>
+              
+              <!-- Top Losers -->
+              <div class="flex flex-col gap-2">
+                <p class="text-[9px] text-error font-bold uppercase tracking-wider flex items-center gap-1">
+                  <i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i> Losers
+                </p>
+                <div id="dash-top-losers" class="flex flex-col gap-1.5">
+                  <!-- Dynamic -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Navigation Panel -->
+          <div class="glass-panel rounded-xl p-5 shadow-sm">
+            <h4 class="font-label-xs text-on-surface-variant uppercase mb-4 px-1" data-i18n="quick_nav">Quick Navigation</h4>
+            <nav class="flex flex-col gap-1.5">
+              <button data-view-target="signals" class="flex items-center justify-between p-3 rounded-xl hover:bg-surface-variant/40 transition-colors group">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="zap" class="text-primary w-4 h-4"></i>
+                  <span class="font-body-base text-sm font-semibold" data-i18n="nav_signals">Signals</span>
+                </div>
+                <i data-lucide="chevron-right" class="text-on-surface-variant group-hover:translate-x-1 transition-transform w-4 h-4"></i>
+              </button>
+              <button data-view-target="journal" class="flex items-center justify-between p-3 rounded-xl hover:bg-surface-variant/40 transition-colors group">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="book-open" class="text-tertiary w-4 h-4"></i>
+                  <span class="font-body-base text-sm font-semibold" data-i18n="nav_journal">Journal</span>
+                </div>
+                <i data-lucide="chevron-right" class="text-on-surface-variant group-hover:translate-x-1 transition-transform w-4 h-4"></i>
+              </button>
+              <button data-view-target="subscription" class="flex items-center justify-between p-3 rounded-xl hover:bg-surface-variant/40 transition-colors group">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="crown" class="text-yellow-500 w-4 h-4"></i>
+                  <span class="font-body-base text-sm font-semibold" data-i18n="nav_subscription">Plans</span>
+                </div>
+                <i data-lucide="chevron-right" class="text-on-surface-variant group-hover:translate-x-1 transition-transform w-4 h-4"></i>
+              </button>
+            </nav>
+          </div>
+
+          <!-- Emotion Reflection Tracker -->
+          <div class="glass-panel rounded-xl p-5 shadow-sm">
+            <h4 class="font-label-xs text-on-surface-variant uppercase mb-3 px-1" data-i18n="mental_radar">Trader Mood Analytics</h4>
+            <div id="dash-mood-stats" class="flex flex-col gap-3">
+              <!-- Rendered via JS based on journal state -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Widgets (8 columns) -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          
+          <!-- AI Top Picks of the Day -->
+          <div class="glass-panel rounded-xl p-5 shadow-sm bg-gradient-to-br from-primary/10 via-transparent to-secondary/5 border border-primary/20 flex flex-col gap-4">
+            <div class="flex justify-between items-center pb-1 border-b border-outline-variant/10">
+              <div>
+                <h3 class="font-headline-md text-sm font-extrabold text-primary flex items-center gap-2">
+                  <i data-lucide="brain-circuit" class="w-4 h-4 text-primary animate-pulse"></i>
+                  Today's Top AI Trading Picks
+                </h3>
+                <p class="text-[10px] text-on-surface-variant mt-0.5">High-probability setups suggested by the trained Reinforcement Learning Agent.</p>
+              </div>
+              <span class="text-[8px] text-primary font-extrabold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded uppercase">AI Model</span>
+            </div>
+            
+            <div id="dash-ai-picks" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between px-1">
+            <h2 class="font-headline-md text-lg font-bold text-on-surface" data-i18n="todays_signals">Today's Top Signals</h2>
+            <button data-view-target="signals" class="text-primary font-label-xs hover:underline flex items-center gap-1">
+              <span data-i18n="view_all">View All Signals</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Quick Top Signals Grid -->
+          <div id="dash-top-signals" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Dynamic placeholder -->
+          </div>
+
+          <!-- Embedded Real TradingView Terminal Widget -->
+          <div class="glass-panel rounded-xl p-5 flex flex-col grow min-h-[360px] shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <h3 class="font-headline-md text-sm font-bold text-on-surface" data-i18n="live_market_watch">Live Market Watch</h3>
+                <div class="flex bg-surface-container rounded-lg p-0.5 border border-outline-variant/30 text-[10px]">
+                  <span class="px-2.5 py-0.5 bg-primary text-white rounded font-bold uppercase">TradingView</span>
+                </div>
+              </div>
+              <button id="fullscreen-tv-btn" class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <div class="flex-grow w-full rounded-lg overflow-hidden bg-background/50 border border-outline-variant/20 relative" style="height: 300px;">
+              <div id="tradingview-dashboard-widget" class="w-full h-full"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 2: TECHNICAL SIGNALS -->
+    <section id="view-signals" class="view-section fade-in flex flex-col gap-6 hidden">
+      <!-- Search and Filter Panel -->
+      <div class="glass-panel rounded-xl p-5 shadow-sm flex flex-col gap-4">
+        <h2 class="font-headline-md text-lg font-bold text-primary flex items-center gap-2">
+          <i data-lucide="search" class="w-5 h-5"></i>
+          <span data-i18n="signals_engine">Technical Signals Engine</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Search input -->
+          <div class="md:col-span-1 relative">
+            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-outline w-4 h-4"></i>
+            <input id="signal-search-input" class="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:border-primary text-sm transition-colors text-on-surface" placeholder="Search symbol/strategy..." type="text"/>
+          </div>
+          <!-- Filter Buttons -->
+          <div class="md:col-span-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+            <button data-filter-cat="ALL" class="signal-filter-btn px-4 py-2 rounded-full bg-primary text-white text-xs font-bold uppercase tracking-wider whitespace-nowrap active:scale-95 transition-all">ALL SIGNALS</button>
+            <button data-filter-cat="Trend" class="signal-filter-btn px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-all text-xs font-bold uppercase tracking-wider whitespace-nowrap active:scale-95">Trend</button>
+            <button data-filter-cat="Momentum" class="signal-filter-btn px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-all text-xs font-bold uppercase tracking-wider whitespace-nowrap active:scale-95">Momentum</button>
+            <button data-filter-cat="Breakout" class="signal-filter-btn px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-all text-xs font-bold uppercase tracking-wider whitespace-nowrap active:scale-95">Breakout</button>
+            <button data-filter-cat="SMC" class="signal-filter-btn px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-all text-xs font-bold uppercase tracking-wider whitespace-nowrap active:scale-95">SMC / Price Action</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signals Grid -->
+      <div id="signals-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Signal cards will be rendered dynamically here -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: TRADE TERMINAL -->
+    <section id="view-trade" class="view-section fade-in flex flex-col gap-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Side: Interactive Chart & active positions table -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          
+          <!-- Asset Real-time Header -->
+          <div class="glass-panel p-5 rounded-xl flex items-center justify-between border-l-4 border-secondary shadow-sm">
+            <div class="flex items-center gap-4">
+              <select id="trade-symbol-selector" class="bg-surface-container border border-outline-variant/30 rounded-lg p-2 font-bold text-on-surface focus:outline-none text-sm">
+                <option value="RELIANCE">RELIANCE</option>
+                <option value="TCS">TCS</option>
+                <option value="INFY">INFY</option>
+                <option value="HDFCBANK">HDFCBANK</option>
+                <option value="ICICIBANK">ICICIBANK</option>
+                <option value="SBIN">SBIN</option>
+                <option value="TATAMOTORS">TATAMOTORS</option>
+                <option value="NIFTY 50">NIFTY 50</option>
+                <option value="BANK NIFTY">BANK NIFTY</option>
+                <option value="FIN NIFTY">FIN NIFTY</option>
+              </select>
+              <div>
+                <h2 class="font-headline-md text-base font-bold" id="trade-symbol-name">RELIANCE</h2>
+                <span class="font-label-xs text-on-surface-variant uppercase text-[9px]" data-i18n="paper_mode">Paper Trading Mode</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-data-mono text-2xl font-bold ticker-glow-up text-secondary" id="trade-live-price">₹2,985.00</div>
+              <div class="font-data-mono text-[11px] text-secondary" id="trade-live-change">+2.45%</div>
+            </div>
+          </div>
+
+          <!-- Full Interactive TradingView Chart Terminal -->
+          <div class="glass-panel rounded-xl flex flex-col overflow-hidden shadow-sm border border-outline-variant/30">
+            <div class="flex items-center justify-between p-3 border-b border-outline-variant/20 bg-surface-container-low">
+              <div class="flex gap-1.5" id="tv-timeframe-selectors">
+                <button onclick="changeChartTimeframe('1')" class="tv-tf-btn px-2.5 py-1 rounded hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-[10px] font-bold transition-all">1m</button>
+                <button onclick="changeChartTimeframe('5')" class="tv-tf-btn px-2.5 py-1 rounded hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-[10px] font-bold transition-all">5m</button>
+                <button onclick="changeChartTimeframe('15')" class="tv-tf-btn px-2.5 py-1 rounded hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-[10px] font-bold transition-all">15m</button>
+                <button onclick="changeChartTimeframe('60')" class="tv-tf-btn px-2.5 py-1 rounded hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-[10px] font-bold transition-all">1h</button>
+                <button onclick="changeChartTimeframe('D')" class="tv-tf-btn px-2.5 py-1 rounded bg-primary text-white text-[10px] font-bold transition-all">1D</button>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="chart-provider-selector" onchange="switchChartProvider(this.value)" class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-[10px] font-bold px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                  <option value="tradingview">⭐ TradingView Pro</option>
+                  <option value="gocharting">⭐ GoCharting (Order Flow & Vol Profile)</option>
+                </select>
+              </div>
+            </div>
+            <div class="bg-surface-container-lowest h-[560px] relative w-full overflow-hidden">
+              <div id="tradingview-trade-widget" class="w-full h-full"></div>
+            </div>
+          </div>
+
+          <!-- Active Positions -->
+          <div class="glass-panel rounded-xl flex flex-col shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-low/40">
+              <h3 class="font-headline-md text-sm font-bold flex items-center gap-2">
+                <i data-lucide="activity" class="text-primary w-4 h-4"></i>
+                <span data-i18n="active_positions">Active Positions</span>
+              </h3>
+              <span id="active-positions-count" class="font-label-xs bg-surface-container-highest px-2.5 py-0.5 rounded-full text-[10px]">0 Active</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="text-on-surface-variant font-label-xs text-[10px] border-b border-outline-variant/10 uppercase bg-surface-container-low/50">
+                    <th class="p-4">Asset</th>
+                    <th class="p-4">Type</th>
+                    <th class="p-4">Size</th>
+                    <th class="p-4">Entry Price</th>
+                    <th class="p-4 text-right">P&L (Real-time)</th>
+                    <th class="p-4 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="active-positions-tbody" class="font-data-mono text-sm">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Order Execution & Ledger -->
+        <aside class="lg:col-span-4 flex flex-col gap-6">
+          <!-- Trading Balance Panel -->
+          <div class="glass-panel p-5 rounded-xl bg-gradient-to-br from-primary/10 to-transparent shadow-sm border border-primary/20">
+            <div class="flex items-center gap-2 text-on-surface-variant text-xs">
+              <i data-lucide="wallet" class="w-4 h-4 text-primary"></i>
+              <span class="uppercase font-semibold" data-i18n="available_margin">Available Margin</span>
+            </div>
+            <div id="trade-paper-balance" class="font-data-mono text-3xl font-extrabold text-primary my-1">₹1,00,000.00</div>
+            <div class="flex items-center justify-between text-[11px] text-on-surface-variant mt-2">
+              <span id="portfolio-today-pnl" class="text-secondary font-semibold">+₹0.00 today</span>
+              <span class="font-bold">•</span>
+              <span id="portfolio-total-positions">0 Active Trades</span>
+            </div>
+          </div>
+
+          <!-- AI Trading Copilot Assistant -->
+          <div id="ai-copilot-card" class="glass-panel p-4.5 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent flex flex-col gap-3 shadow-sm">
+            <div class="flex justify-between items-center pb-1.5 border-b border-outline-variant/10">
+              <span class="text-[9px] text-primary uppercase font-extrabold flex items-center gap-1.5">
+                <i data-lucide="brain-circuit" class="w-4 h-4 text-primary animate-pulse"></i>
+                AI Trading Copilot
+              </span>
+              <span id="ai-copilot-status" class="text-[8px] font-extrabold uppercase bg-secondary/20 text-secondary border border-secondary/20 px-2 py-0.5 rounded">Live AI Setup</span>
+            </div>
+            
+            <div id="ai-copilot-recommendation" class="text-xs text-on-surface-variant leading-relaxed">
+              <div class="flex flex-col gap-1.5">
+                <p class="font-semibold text-on-surface">⚡ Live AI Setup: <span class="text-secondary font-extrabold">BUY RELIANCE</span></p>
+                <p class="text-[10px] text-on-surface-variant leading-relaxed">Trigger: <span class="font-semibold text-primary">Multi-Indicator Confluence</span>. Entry: <span class="font-bold">₹1,270.13</span>. Target 1: <span class="font-bold text-secondary">₹1,289.18</span>. Stop Loss: <span class="font-bold text-error">₹1,259.97</span>.</p>
+              </div>
+            </div>
+            
+            <div id="ai-copilot-actions">
+              <button id="ai-copilot-apply-btn" class="w-full py-2 bg-primary hover:brightness-110 text-white rounded-lg text-[10px] font-extrabold uppercase transition-all active:scale-95 shadow-md shadow-primary/10">
+                Apply AI Recommended Order
+              </button>
+            </div>
+          </div>
+
+          <!-- Order Entry Form -->
+          <div class="glass-panel rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 flex flex-col">
+            <div class="p-4 border-b border-outline-variant/20 bg-surface-container-high flex flex-col gap-3">
+              <!-- Market / Limit order type switch -->
+              <div class="flex bg-surface-container-lowest p-1 rounded-lg border border-outline-variant/20">
+                <button id="ordertype-market-btn" class="flex-1 py-1.5 rounded-md bg-primary text-white font-label-xs uppercase text-[10px] font-bold active:scale-95 transition-all">Market</button>
+                <button id="ordertype-limit-btn" class="flex-1 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface font-label-xs uppercase text-[10px] font-bold hover:bg-surface-variant/30 active:scale-95 transition-all">Limit</button>
+              </div>
+            </div>
+
+            <div class="p-5 flex flex-col gap-4 flex-grow">
+              <!-- Symbol Info Display -->
+              <div class="flex justify-between items-center text-xs border-b border-outline-variant/10 pb-2">
+                <span class="text-on-surface-variant">Asset Symbol</span>
+                <span id="order-symbol-display" class="font-bold text-primary font-data-mono">BTC/USDT</span>
+              </div>
+
+              <!-- Entry Price Input (Only enabled for Limit orders) -->
+              <div id="limit-price-input-container" class="flex flex-col gap-1 hidden">
+                <label class="font-label-xs text-on-surface-variant uppercase text-[10px]">Limit Entry Price</label>
+                <div class="relative">
+                  <input id="order-limit-price" class="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-3 font-data-mono text-sm focus:outline-none focus:border-primary text-on-surface" type="number" step="any" placeholder="0.00" />
+                </div>
+              </div>
+
+              <!-- Quantity Input -->
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between items-center">
+                  <label class="font-label-xs text-on-surface-variant uppercase text-[10px]">Quantity (Size)</label>
+                  <span id="order-max-size" class="font-label-xs text-primary text-[10px]">Max: --</span>
+                </div>
+                <div class="relative">
+                  <input id="order-qty" class="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-3 font-data-mono text-base font-bold focus:outline-none focus:border-primary text-on-surface pr-14" type="number" step="any" value="0.10" />
+                  <span id="order-asset-unit" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-label-xs text-[10px]">BTC</span>
+                </div>
+                <div class="flex justify-between gap-1.5 mt-1">
+                  <button class="qty-pct-btn flex-1 py-1 bg-surface-variant/30 hover:bg-surface-variant/50 rounded text-[10px] font-bold" data-pct="0.25">25%</button>
+                  <button class="qty-pct-btn flex-1 py-1 bg-surface-variant/30 hover:bg-surface-variant/50 rounded text-[10px] font-bold" data-pct="0.50">50%</button>
+                  <button class="qty-pct-btn flex-1 py-1 bg-surface-variant/30 hover:bg-surface-variant/50 rounded text-[10px] font-bold" data-pct="0.75">75%</button>
+                  <button class="qty-pct-btn flex-1 py-1 bg-surface-variant/30 hover:bg-surface-variant/50 rounded text-[10px] font-bold" data-pct="1.00">100%</button>
+                </div>
+              </div>
+
+              <!-- Margin Estimations Card -->
+              <div class="flex flex-col gap-2 p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/10 text-xs">
+                <div class="flex justify-between font-label-xs">
+                  <span class="text-on-surface-variant">Position Value</span>
+                  <span id="order-est-value" class="font-data-mono">₹0.00</span>
+                </div>
+                <div class="flex justify-between font-label-xs">
+                  <span class="text-on-surface-variant">Margin Required (5x)</span>
+                  <span id="order-est-margin" class="font-data-mono text-secondary">₹0.00</span>
+                </div>
+              </div>
+
+              <!-- Buy/Short Action Buttons -->
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <button id="order-buy-btn" class="flex flex-col items-center justify-center gap-1 bg-secondary hover:brightness-110 text-white p-3 rounded-xl font-bold active:scale-95 transition-all shadow-md shadow-secondary/10">
+                  <span class="text-xs uppercase font-extrabold" data-i18n="buy_long">BUY / LONG</span>
+                  <span class="font-data-mono text-[9px] opacity-80" id="order-btn-buy-price">--</span>
+                </button>
+                <button id="order-sell-btn" class="flex flex-col items-center justify-center gap-1 bg-tertiary-container hover:brightness-110 text-white p-3 rounded-xl font-bold active:scale-95 transition-all shadow-md shadow-tertiary-container/10">
+                  <span class="text-xs uppercase font-extrabold" data-i18n="sell_short">SELL / SHORT</span>
+                  <span class="font-data-mono text-[9px] opacity-80" id="order-btn-sell-price">--</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trade History Ledger -->
+          <div class="glass-panel rounded-xl overflow-hidden shadow-sm flex flex-col">
+            <div class="p-4 border-b border-outline-variant/20 bg-surface-container-low/40">
+              <h3 class="font-headline-md text-sm font-bold flex items-center gap-2">
+                <i data-lucide="history" class="text-primary w-4 h-4"></i>
+                <span data-i18n="trade_ledger">Trade History Ledger</span>
+              </h3>
+            </div>
+            <div class="max-h-56 overflow-y-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="text-on-surface-variant border-b border-outline-variant/10 uppercase bg-surface-container-low/30">
+                    <th class="p-3">Asset</th>
+                    <th class="p-3">Type</th>
+                    <th class="p-3">PnL</th>
+                  </tr>
+                </thead>
+                <tbody id="trade-ledger-tbody" class="font-data-mono">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- VIEW 4: TRADER JOURNAL -->
+    <section id="view-journal" class="view-section fade-in flex flex-col gap-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Side: Logger Form (5 columns) -->
+        <div class="lg:col-span-5">
+          <div class="glass-panel rounded-xl p-5 shadow-sm flex flex-col gap-4">
+            <h2 class="font-headline-md text-base font-bold text-primary flex items-center gap-2 border-b border-outline-variant/10 pb-3">
+              <i data-lucide="pen-tool" class="w-5 h-5"></i>
+              <span data-i18n="log_trade">Log Trade Reflection</span>
+            </h2>
+            <form id="journal-form" class="flex flex-col gap-4">
+              <div class="grid grid-cols-2 gap-4">
+                <!-- Asset Symbol Selector -->
+                <div class="flex flex-col gap-1">
+                  <label class="text-xs text-on-surface-variant font-semibold">Symbol</label>
+                  <select id="journal-symbol" class="bg-surface-container border border-outline-variant/40 rounded-xl p-2.5 text-sm focus:outline-none focus:border-primary text-on-surface">
+                    <option value="RELIANCE">RELIANCE</option>
+                    <option value="TCS">TCS</option>
+                    <option value="INFY">INFY</option>
+                    <option value="HDFCBANK">HDFCBANK</option>
+                    <option value="ICICIBANK">ICICIBANK</option>
+                    <option value="SBIN">SBIN</option>
+                    <option value="TATAMOTORS">TATAMOTORS</option>
+                    <option value="NIFTY 50">NIFTY 50</option>
+                    <option value="BANK NIFTY">BANK NIFTY</option>
+                    <option value="FIN NIFTY">FIN NIFTY</option>
+                  </select>
+                </div>
+                <!-- Strategy Tag -->
+                <div class="flex flex-col gap-1">
+                  <label class="text-xs text-on-surface-variant font-semibold">Strategy Tag</label>
+                  <input id="journal-strategy" class="bg-surface-container border border-outline-variant/40 rounded-xl p-2.5 text-sm focus:outline-none focus:border-primary text-on-surface" type="text" placeholder="e.g. ORB, FVG" required />
+                </div>
+              </div>
+
+              <!-- Emotional state selection -->
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-on-surface-variant font-semibold" data-i18n="emotion_state">Emotional State</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" data-mood="Disciplined" class="mood-select-btn py-2 border border-outline-variant/40 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 hover:bg-surface-variant/30 text-on-surface-variant bg-surface-container">
+                    <i data-lucide="check" class="w-3.5 h-3.5 text-secondary hidden"></i>
+                    <span data-i18n="disciplined">Disciplined</span>
+                  </button>
+                  <button type="button" data-mood="Fearful" class="mood-select-btn py-2 border border-outline-variant/40 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 hover:bg-surface-variant/30 text-on-surface-variant bg-surface-container">
+                    <i data-lucide="check" class="w-3.5 h-3.5 text-secondary hidden"></i>
+                    <span data-i18n="fearful">Fearful</span>
+                  </button>
+                  <button type="button" data-mood="Greedy" class="mood-select-btn py-2 border border-outline-variant/40 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 hover:bg-surface-variant/30 text-on-surface-variant bg-surface-container">
+                    <i data-lucide="check" class="w-3.5 h-3.5 text-secondary hidden"></i>
+                    <span data-i18n="greedy">Greedy</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Reflections notes -->
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-on-surface-variant font-semibold">Notes</label>
+                <textarea id="journal-notes" rows="3" class="bg-surface-container border border-outline-variant/40 rounded-xl p-2.5 text-sm focus:outline-none focus:border-primary text-on-surface" placeholder="What occurred during the trade?" required></textarea>
+              </div>
+
+              <!-- Post reflection notes -->
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-on-surface-variant font-semibold">Key Lessons / Reflections</label>
+                <input id="journal-reflection" class="bg-surface-container border border-outline-variant/40 rounded-xl p-2.5 text-sm focus:outline-none focus:border-primary text-on-surface" type="text" placeholder="e.g. Kept stop loss tight, exited too early" />
+              </div>
+
+              <button type="submit" class="w-full bg-primary hover:brightness-110 text-white font-bold py-2.5 rounded-xl text-sm transition-all active:scale-95 flex items-center justify-center gap-2 mt-2 shadow-md shadow-primary/10">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                Save Journal Entry
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right Side: Journal History (7 columns) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+          <div class="flex items-center justify-between px-1">
+            <h2 class="font-headline-md text-base font-bold text-on-surface" data-i18n="journal_logs">Reflections & Journal Logs</h2>
+            <span id="journal-logs-count" class="text-xs text-on-surface-variant bg-surface-container px-2.5 py-1 rounded-full font-semibold">0 Entries</span>
+          </div>
+
+          <!-- Journal entries feed -->
+          <div id="journal-logs-feed" class="flex flex-col gap-4 max-h-[580px] overflow-y-auto pr-1">
+            <!-- Renders dynamically -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 5: SUBSCRIPTIONS & CHECOUT -->
+    <section id="view-subscription" class="view-section fade-in flex flex-col gap-6 hidden">
+      <!-- Subscription header -->
+      <div class="text-center py-6">
+        <h2 class="font-display-lg text-3xl font-extrabold text-on-surface tracking-tight" data-i18n="pricing_title">Upgrade Your Trading Edge</h2>
+        <p class="text-sm text-on-surface-variant mt-2 max-w-xl mx-auto" data-i18n="pricing_subtitle">Unlock high-accuracy SMC signals, institutional order block indicators, and live AI assistant strategy triggers.</p>
+      </div>
+
+      <!-- Tier Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Tier 1: Free -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between border border-outline-variant/30 shadow-sm relative">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <span class="px-3 py-1 bg-surface-container rounded-full text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Starter</span>
+              <span class="text-xs text-on-surface-variant font-bold">Current</span>
+            </div>
+            <h3 class="font-headline-md text-2xl font-bold text-on-surface">Free Tier</h3>
+            <div class="my-4">
+              <span class="font-display-lg text-4xl font-extrabold text-on-surface">₹0</span>
+              <span class="text-xs text-on-surface-variant font-bold">/ forever</span>
+            </div>
+            <ul class="flex flex-col gap-3 my-6 text-xs text-on-surface-variant">
+              <li class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                <span>Basic Technical Signals (EMA, RSI)</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                <span>₹1,00,000 Paper Trading Margin</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                <span>Trader Emotion Journal</span>
+              </li>
+              <li class="flex items-center gap-2 opacity-40">
+                <i data-lucide="x" class="w-4 h-4 text-error"></i>
+                <span class="line-through">SMC & FVG Signals (Locked)</span>
+              </li>
+            </ul>
+          </div>
+          <button class="w-full py-3 bg-surface-container rounded-xl font-bold text-xs text-on-surface-variant cursor-not-allowed" disabled>Current Active Tier</button>
+        </div>
+
+        <!-- Tier 2: Pro -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between border border-primary/40 shadow-lg relative bg-gradient-to-b from-primary/5 to-transparent">
+          <div class="absolute -top-3 right-6 bg-primary text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full shadow-md">Most Popular</div>
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-[10px] font-bold uppercase tracking-wider">Professional</span>
+            </div>
+            <h3 class="font-headline-md text-2xl font-bold text-on-surface">Pro Trader</h3>
+            <div class="my-4">
+              <span class="font-display-lg text-4xl font-extrabold text-primary">₹999</span>
+              <span class="text-xs text-on-surface-variant font-bold">/ month</span>
+            </div>
+            <ul class="flex flex-col gap-3 my-6 text-xs text-on-surface-variant">
+              <li class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                <span>All Trend & Momentum Signals</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                <span>Real-time Technical Alerts</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                <span>Unlimited Paper Trading Reset</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                <span>AI Trading Assistant Prompts</span>
+              </li>
+            </ul>
+          </div>
+          <button onclick="openPaymentModal('Pro', 999)" class="w-full py-3 bg-primary hover:brightness-110 text-white font-bold text-xs rounded-xl shadow-md shadow-primary/20 active:scale-95 transition-all">Upgrade to Pro</button>
+        </div>
+
+        <!-- Tier 3: Prime -->
+        <div class="rounded-2xl prime-border p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
+          <div class="prime-inner p-6 flex flex-col justify-between h-full">
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <span class="px-3 py-1 bg-secondary/20 text-secondary rounded-full text-[10px] font-bold uppercase tracking-wider">Institutional</span>
+              </div>
+              <h3 class="font-headline-md text-2xl font-bold text-on-surface">Institutional Prime</h3>
+              <div class="my-4">
+                <span class="font-display-lg text-4xl font-extrabold text-secondary">₹2,499</span>
+                <span class="text-xs text-on-surface-variant font-bold">/ month</span>
+              </div>
+              <ul class="flex flex-col gap-3 my-6 text-xs text-on-surface-variant">
+                <li class="flex items-center gap-2">
+                  <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                  <span class="font-bold text-secondary">Unlocks All SMC & Price Action Signals</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                  <span>Fair Value Gap (FVG) Strategy Feed</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                  <span>Order Block Liquidity Detection</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <i data-lucide="check" class="w-4 h-4 text-secondary"></i>
+                  <span>Full Q-Learning Agent Heatmap Access</span>
+                </li>
+              </ul>
+            </div>
+            <button onclick="openPaymentModal('Prime', 2499)" class="w-full py-3 bg-secondary hover:brightness-110 text-white font-bold text-xs rounded-xl shadow-md shadow-secondary/20 active:scale-95 transition-all">Upgrade to Prime</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: ADMIN CONTROL PANEL -->
+    <section id="view-admin" class="view-section fade-in flex flex-col gap-6 hidden">
+      <div class="glass-panel p-5 rounded-xl border border-outline-variant/30 flex justify-between items-center bg-surface-container-low/40">
+        <div>
+          <h2 class="font-headline-md text-lg font-bold text-primary flex items-center gap-2">
+            <i data-lucide="lock" class="w-5 h-5"></i>
+            <span data-i18n="admin_panel">Admin Control Center</span>
+          </h2>
+          <p class="text-xs text-on-surface-variant mt-1">Manage global market prices, inject custom technical signals, and trigger system-wide notification broadcasts.</p>
+        </div>
+        <i data-lucide="shield-check" class="text-primary w-8 h-8 opacity-40"></i>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Price Manipulator & Broadcaster (5 columns) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <!-- Price Override Widget -->
+          <div class="glass-panel rounded-xl p-5 shadow-sm flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-on-surface border-b border-outline-variant/10 pb-2 flex items-center gap-2">
+              <i data-lucide="sliders" class="w-4 h-4 text-primary"></i>
+              Market Price Overrider
+            </h3>
+            <form id="admin-price-override-form" class="flex flex-col gap-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Asset Symbol</label>
+                  <select id="admin-override-symbol" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1">
+                    <option value="RELIANCE">RELIANCE</option>
+                    <option value="TCS">TCS</option>
+                    <option value="INFY">INFY</option>
+                    <option value="HDFCBANK">HDFCBANK</option>
+                    <option value="ICICIBANK">ICICIBANK</option>
+                    <option value="SBIN">SBIN</option>
+                    <option value="TATAMOTORS">TATAMOTORS</option>
+                    <option value="NIFTY 50">NIFTY 50</option>
+                    <option value="BANK NIFTY">BANK NIFTY</option>
+                    <option value="FIN NIFTY">FIN NIFTY</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Inject Price</label>
+                  <input id="admin-override-price" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" placeholder="e.g. 65000" required />
+                </div>
+              </div>
+              <button type="submit" class="bg-primary hover:brightness-110 text-white font-semibold py-2 rounded-lg text-xs transition-all active:scale-95">
+                Override Asset Price
+              </button>
+            </form>
+          </div>
+
+          <!-- Toast Alert Broadcaster -->
+          <div class="glass-panel rounded-xl p-5 shadow-sm flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-on-surface border-b border-outline-variant/10 pb-2 flex items-center gap-2">
+              <i data-lucide="megaphone" class="w-4 h-4 text-primary"></i>
+              System Broadcaster (Toast Injector)
+            </h3>
+            <form id="admin-broadcast-form" class="flex flex-col gap-3">
+              <div>
+                <label class="text-[10px] text-on-surface-variant font-bold uppercase">Broadcast Message</label>
+                <input id="admin-broadcast-message" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="text" placeholder="e.g. Target hit! RELIANCE target hit at ₹2985." required />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Alert Type</label>
+                  <select id="admin-broadcast-type" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1">
+                    <option value="info">Info (Blue)</option>
+                    <option value="success">Success (Green)</option>
+                    <option value="warning">Warning (Yellow)</option>
+                    <option value="error">Error (Red)</option>
+                  </select>
+                </div>
+                <button type="submit" class="bg-primary hover:brightness-110 text-white font-semibold rounded-lg text-xs mt-5 transition-all active:scale-95">
+                  Broadcast Alert
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Account Settings Overrider -->
+          <div class="glass-panel rounded-xl p-5 shadow-sm flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-on-surface border-b border-outline-variant/10 pb-2 flex items-center gap-2">
+              <i data-lucide="user-cog" class="w-4 h-4 text-primary"></i>
+              User Account Settings Override
+            </h3>
+            <form id="admin-user-override-form" class="flex flex-col gap-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Account Tier</label>
+                  <select id="admin-user-tier" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1">
+                    <option value="Free">Free</option>
+                    <option value="Pro">Pro</option>
+                    <option value="Prime">Prime</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Wallet Balance (INR)</label>
+                  <input id="admin-user-balance" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" placeholder="e.g. 100000" required />
+                </div>
+              </div>
+              <button type="submit" class="bg-secondary hover:brightness-110 text-white font-semibold py-2 rounded-lg text-xs transition-all active:scale-95">
+                Apply Account Changes
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Custom Signals Injector Form (7 columns) -->
+        <div class="lg:col-span-7">
+          <div class="glass-panel rounded-xl p-5 shadow-sm flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-on-surface border-b border-outline-variant/10 pb-2 flex items-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 text-primary"></i>
+              Inject Custom Manual Signal
+            </h3>
+            <form id="admin-signal-injector-form" class="flex flex-col gap-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Asset Symbol</label>
+                  <select id="admin-sig-symbol" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1">
+                    <option value="RELIANCE">RELIANCE</option>
+                    <option value="TCS">TCS</option>
+                    <option value="INFY">INFY</option>
+                    <option value="HDFCBANK">HDFCBANK</option>
+                    <option value="ICICIBANK">ICICIBANK</option>
+                    <option value="SBIN">SBIN</option>
+                    <option value="TATAMOTORS">TATAMOTORS</option>
+                    <option value="NIFTY 50">NIFTY 50</option>
+                    <option value="BANK NIFTY">BANK NIFTY</option>
+                    <option value="FIN NIFTY">FIN NIFTY</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Strategy Name</label>
+                  <input id="admin-sig-name" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="text" placeholder="e.g. FVG Rejection" required />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-3">
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Strategy Category</label>
+                  <select id="admin-sig-cat" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1">
+                    <option value="Trend">Trend</option>
+                    <option value="Momentum">Momentum</option>
+                    <option value="Breakout">Breakout</option>
+                    <option value="SMC">SMC / Price Action</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Signal Type</label>
+                  <select id="admin-sig-type" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1">
+                    <option value="BUY">BUY</option>
+                    <option value="SELL">SELL</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Requires Premium?</label>
+                  <select id="admin-sig-premium" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1">
+                    <option value="0">No (Basic)</option>
+                    <option value="1">Yes (Pro/Prime)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 border-t border-outline-variant/10 pt-2 mt-2">
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Entry Price</label>
+                  <input id="admin-sig-entry" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" placeholder="64000" required />
+                </div>
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Stop Loss (SL)</label>
+                  <input id="admin-sig-sl" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" placeholder="63500" required />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-3">
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Target 1 (T1)</label>
+                  <input id="admin-sig-t1" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" placeholder="64500" required />
+                </div>
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Target 2 (T2)</label>
+                  <input id="admin-sig-t2" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" placeholder="65000" required />
+                </div>
+                <div>
+                  <label class="text-[10px] text-on-surface-variant font-bold uppercase">Target 3 (T3)</label>
+                  <input id="admin-sig-t3" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" placeholder="66000" required />
+                </div>
+              </div>
+
+              <button type="submit" class="bg-primary hover:brightness-110 text-white font-bold py-2.5 rounded-lg text-xs mt-3 transition-all active:scale-95 shadow-md shadow-primary/10">
+                Inject Signal into Live Feed
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 7: AI AGENT DASHBOARD -->
+    <section id="view-ai" class="view-section fade-in flex flex-col gap-6 hidden">
+      <!-- AI Overview Header -->
+      <div class="glass-panel p-5 rounded-xl shadow-sm border border-outline-variant/30 flex justify-between items-center bg-surface-container-low/40">
+        <div>
+          <h2 class="font-headline-md text-lg font-bold text-primary flex items-center gap-2">
+            <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+            <span data-i18n="ai_agent_dashboard">Self-Learning AI Trading Engine</span>
+          </h2>
+          <p class="text-xs text-on-surface-variant mt-1">Monitor real-time Q-learning rewards, visual weights heatmap, and optimize parameters via historical backtests.</p>
+        </div>
+        <i data-lucide="cpu" class="text-primary w-8 h-8 opacity-40"></i>
+      </div>
+
+      <!-- Metrics Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Learned States -->
+        <div class="glass-panel p-4 rounded-xl shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">States Learned</span>
+            <h4 id="ai-metrics-states" class="text-xl font-extrabold font-data-mono text-primary mt-1">0</h4>
+          </div>
+          <div class="p-2.5 bg-primary/10 rounded-lg text-primary"><i data-lucide="network" class="w-5 h-5"></i></div>
+        </div>
+        <!-- Accuracy -->
+        <div class="glass-panel p-4 rounded-xl shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">AI Accuracy</span>
+            <h4 id="ai-metrics-accuracy" class="text-xl font-extrabold font-data-mono text-secondary mt-1">50%</h4>
+          </div>
+          <div class="p-2.5 bg-secondary/10 rounded-lg text-secondary"><i data-lucide="target" class="w-5 h-5"></i></div>
+        </div>
+        <!-- Total Predictions -->
+        <div class="glass-panel p-4 rounded-xl shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Total Predictions</span>
+            <h4 id="ai-metrics-predictions" class="text-xl font-extrabold font-data-mono text-tertiary-container mt-1">0</h4>
+          </div>
+          <div class="p-2.5 bg-tertiary-container/10 rounded-lg text-tertiary-container"><i data-lucide="calculator" class="w-5 h-5"></i></div>
+        </div>
+        <!-- Net Reward -->
+        <div class="glass-panel p-4 rounded-xl shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Net Reward</span>
+            <h4 id="ai-metrics-reward" class="text-xl font-extrabold font-data-mono mt-1 text-primary">0.0</h4>
+          </div>
+          <div class="p-2.5 bg-primary/10 rounded-lg text-primary"><i data-lucide="trophy" class="w-5 h-5"></i></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left Column (7 columns): Heatmap & Predictions -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+          
+          <!-- Q-Learning weights visualizer canvas -->
+          <div class="glass-panel p-5 rounded-xl shadow-sm flex flex-col gap-3">
+            <div class="flex justify-between items-center border-b border-outline-variant/10 pb-2">
+              <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
+                <i data-lucide="table" class="w-4 h-4 text-primary"></i>
+                Q-Table State-Action Heatmap
+              </h3>
+              <span class="text-[9px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded font-mono">Top weights</span>
+            </div>
+            <div class="h-64 relative bg-surface-container-lowest/40 rounded-xl overflow-hidden p-2 flex items-center justify-center">
+              <canvas id="ai-qtable-canvas" class="w-full h-full block"></canvas>
+            </div>
+          </div>
+
+          <!-- Live AI predictions / training tracker -->
+          <div class="glass-panel rounded-xl shadow-sm overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-outline-variant/20 bg-surface-container-low/40 flex justify-between items-center">
+              <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
+                <i data-lucide="eye" class="w-4 h-4 text-primary"></i>
+                Live Predictions & Reinforcement Feedback
+              </h3>
+              <span class="text-[9px] text-on-surface-variant bg-surface-container px-2 py-1 rounded font-semibold uppercase">Train AI</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="text-on-surface-variant border-b border-outline-variant/10 uppercase bg-surface-container-low/30">
+                    <th class="p-3">Asset</th>
+                    <th class="p-3">Decision</th>
+                    <th class="p-3">PnL & Points</th>
+                    <th class="p-3">Reward & Self-Reflection</th>
+                    <th class="p-3 text-center">User Training Feedback</th>
+                  </tr>
+                </thead>
+                <tbody id="ai-predictions-tbody" class="font-data-mono">
+                  <!-- Renders dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column (5 columns): Backtester controller -->
+        <aside class="lg:col-span-5 flex flex-col gap-6">
+          
+          <!-- Backtesting loop -->
+          <div class="glass-panel p-5 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-on-surface border-b border-outline-variant/10 pb-2 flex items-center gap-2">
+              <i data-lucide="history" class="w-4 h-4 text-primary"></i>
+              Backtest & Parameter Optimizer
+            </h3>
+            <form id="ai-backtest-form" class="flex flex-col gap-3.5">
+              <div class="grid grid-cols-2 gap-3.5">
+                <div>
+                  <label class="text-[9px] text-on-surface-variant font-bold uppercase">Training Episodes</label>
+                  <input id="ai-bt-episodes" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2.5 text-xs focus:outline-none text-on-surface mt-1" type="number" value="100" min="10" max="1000" />
+                </div>
+                <div>
+                  <label class="text-[9px] text-on-surface-variant font-bold uppercase">Exploration Rate (ε)</label>
+                  <input id="ai-bt-epsilon" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2.5 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" value="0.25" min="0" max="1" />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3.5">
+                <div>
+                  <label class="text-[9px] text-on-surface-variant font-bold uppercase">Learning Rate (α)</label>
+                  <input id="ai-bt-alpha" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2.5 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" value="0.10" min="0.01" max="1" />
+                </div>
+                <div>
+                  <label class="text-[9px] text-on-surface-variant font-bold uppercase">Discount Factor (γ)</label>
+                  <input id="ai-bt-gamma" class="w-full bg-surface-container border border-outline-variant/40 rounded-lg p-2.5 text-xs focus:outline-none text-on-surface mt-1" type="number" step="any" value="0.90" min="0.1" max="1" />
+                </div>
+              </div>
+              <button type="submit" class="w-full bg-primary hover:brightness-110 text-white font-bold py-2.5 rounded-xl text-xs transition-all active:scale-95 flex items-center justify-center gap-2 shadow-md shadow-primary/10">
+                <i data-lucide="play" class="w-4 h-4"></i>
+                Run Historical Backtest
+              </button>
+            </form>
+          </div>
+
+          <!-- Optimization performance chart canvas -->
+          <div class="glass-panel p-5 rounded-xl shadow-sm flex flex-col gap-3">
+            <h3 class="text-sm font-bold text-on-surface border-b border-outline-variant/10 pb-2 flex items-center gap-2">
+              <i data-lucide="line-chart" class="w-4 h-4 text-primary"></i>
+              Backtest Learning Curve
+            </h3>
+            <div class="h-44 relative bg-surface-container-lowest/40 rounded-xl overflow-hidden p-2 flex items-center justify-center">
+              <canvas id="ai-backtest-canvas" class="w-full h-full block"></canvas>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-on-surface-variant">
+              <span id="ai-bt-winrate">Win Rate: --</span>
+              <span id="ai-bt-balance">Final Balance: --</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Bottom Row: Pattern Recognition Analytics & Chat Assistant -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+        <!-- Left: Pattern Recognition Success Grid (6 columns) -->
+        <div class="lg:col-span-6 flex flex-col gap-6">
+          <div class="glass-panel rounded-xl shadow-sm overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-outline-variant/20 bg-surface-container-low/40 flex justify-between items-center">
+              <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
+                <i data-lucide="binary" class="w-4 h-4 text-primary"></i>
+                Pattern Recognition Analytics
+              </h3>
+              <span class="text-[8px] text-primary font-extrabold bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded uppercase">Memory Recall</span>
+            </div>
+            
+            <div class="overflow-x-auto max-h-80 overflow-y-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="text-on-surface-variant border-b border-outline-variant/10 uppercase bg-surface-container-low/30">
+                    <th class="p-3">State Pattern</th>
+                    <th class="p-3 text-center">Frequency</th>
+                    <th class="p-3 text-center">Wins/Ups</th>
+                    <th class="p-3 text-right">Probability</th>
+                  </tr>
+                </thead>
+                <tbody id="ai-patterns-tbody" class="font-data-mono">
+                  <!-- Rendered dynamically -->
+                  <tr>
+                    <td colspan="4" class="p-4 text-center text-on-surface-variant text-xs">Waiting for Q-table records to populate patterns...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: AI Trading Brain Chat Assistant (6 columns) -->
+        <div class="lg:col-span-6 flex flex-col gap-4">
+          <div class="glass-panel p-5 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col gap-3 grow min-h-[320px] bg-gradient-to-br from-primary/5 via-transparent to-transparent">
+            <h3 class="text-sm font-bold text-on-surface border-b border-outline-variant/10 pb-2 flex items-center gap-2">
+              <i data-lucide="message-square" class="w-4 h-4 text-primary"></i>
+              AI Smart Trading Assistant
+            </h3>
+            
+            <!-- Chat logs window -->
+            <div id="ai-chat-box" class="flex-grow flex flex-col gap-3.5 overflow-y-auto h-48 pr-1.5 text-xs">
+              <div class="flex gap-2.5">
+                <div class="p-1.5 bg-primary/10 rounded text-primary h-fit"><i data-lucide="brain-circuit" class="w-3.5 h-3.5"></i></div>
+                <div class="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/10 leading-relaxed text-on-surface-variant max-w-[85%]">
+                  Hello! I am your AI Smart Trading Brain. Ask me anything about the market conditions or why a trade failed!
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick Prompts Buttons -->
+            <div class="flex flex-wrap gap-2 pt-1">
+              <button onclick="sendQuickPrompt('Market condition today?')" class="px-2.5 py-1.5 bg-surface-container hover:bg-surface-variant/40 rounded-lg text-[9px] font-bold text-on-surface-variant transition-all active:scale-95 border border-outline-variant/20">Today's Market?</button>
+              <button onclick="sendQuickPrompt('Is this setup good?')" class="px-2.5 py-1.5 bg-surface-container hover:bg-surface-variant/40 rounded-lg text-[9px] font-bold text-on-surface-variant transition-all active:scale-95 border border-outline-variant/20">Analyze Selected Setup</button>
+              <button onclick="sendQuickPrompt('Why did this trade fail?')" class="px-2.5 py-1.5 bg-surface-container hover:bg-surface-variant/40 rounded-lg text-[9px] font-bold text-on-surface-variant transition-all active:scale-95 border border-outline-variant/20">Why did last trade fail?</button>
+              <button onclick="sendQuickPrompt('Improve my strategy')" class="px-2.5 py-1.5 bg-surface-container hover:bg-surface-variant/40 rounded-lg text-[9px] font-bold text-on-surface-variant transition-all active:scale-95 border border-outline-variant/20">Improve Settings</button>
+            </div>
+            
+            <!-- Chat Form -->
+            <form id="ai-chat-form" class="flex gap-2 mt-1">
+              <input id="ai-chat-input" class="flex-grow bg-surface-container border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary text-on-surface" placeholder="Type a message..." type="text" autocomplete="off" />
+              <button type="submit" class="bg-primary hover:brightness-110 text-white p-2.5 rounded-lg active:scale-95 transition-all">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. AI Stock Scanner Section -->
+    <section id="view-scanner" class="view-section hidden space-y-6">
+      <div class="glass-panel p-6 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <i data-lucide="scan" class="w-5 h-5 text-primary"></i>
+          <h2 class="font-headline-md text-xl font-bold">AI Real-Time Stock Scanner</h2>
+        </div>
+        <p class="text-xs text-on-surface-variant">Scanning NSE/BSE equities for breakouts, high volume spikes, strong momentum trends, and oversold reversals.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Top 10 AI Picks Table (8 columns) -->
+        <div class="lg:col-span-8 glass-panel rounded-xl shadow-sm overflow-hidden border border-outline-variant/30">
+          <div class="p-4 border-b border-outline-variant/20 bg-surface-container-low flex justify-between items-center">
+            <h3 class="font-headline-md text-sm font-bold flex items-center gap-2">
+              <i data-lucide="award" class="text-primary w-4 h-4"></i>
+              Top 10 AI Market Picks
+            </h3>
+            <span class="text-[10px] bg-secondary/20 text-secondary border border-secondary/20 px-2.5 py-0.5 rounded-full font-bold uppercase">Live Ranking</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="text-on-surface-variant font-label-xs text-[10px] border-b border-outline-variant/10 uppercase bg-surface-container-low/50">
+                  <th class="p-3">Rank</th>
+                  <th class="p-3">Symbol</th>
+                  <th class="p-3">Price</th>
+                  <th class="p-3">Change %</th>
+                  <th class="p-3">AI Signal</th>
+                  <th class="p-3 text-right">Confidence</th>
+                </tr>
+              </thead>
+              <tbody id="scanner-picks-tbody" class="font-data-mono text-xs">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Scanner Category Breakdown (4 columns) -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <div class="glass-panel p-4 rounded-xl border border-outline-variant/30">
+            <h4 class="text-xs font-bold text-on-surface uppercase mb-3 flex items-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 text-secondary"></i>
+              Volume & Breakout Leaders
+            </h4>
+            <div id="scanner-breakouts-list" class="flex flex-col gap-2 text-xs font-data-mono">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. News Sentiment AI Section -->
+    <section id="view-news" class="view-section hidden space-y-6">
+      <div class="glass-panel p-6 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <i data-lucide="newspaper" class="w-5 h-5 text-primary"></i>
+          <h2 class="font-headline-md text-xl font-bold">News Sentiment AI Analyzer</h2>
+        </div>
+        <p class="text-xs text-on-surface-variant">Real-time NLP sentiment analysis for corporate announcements, quarterly earnings, and macroeconomic news.</p>
+      </div>
+
+      <div id="news-feed-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Injected dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar (Mobile Only) -->
+  <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-4 pb-safe bg-surface border-t border-outline-variant/20 shadow-[0_-4px_15px_rgba(0,0,0,0.15)] z-40 md:hidden transition-colors">
+    <button data-view-target="dashboard" class="mobile-nav-btn flex flex-col items-center justify-center text-primary active:scale-90 transition-all duration-200">
+      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wider mt-1" data-i18n="nav_dashboard">Dashboard</span>
+    </button>
+    <button data-view-target="signals" class="mobile-nav-btn flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-200">
+      <i data-lucide="zap" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wider mt-1" data-i18n="nav_signals">Signals</span>
+    </button>
+    <button data-view-target="trade" class="mobile-nav-btn flex flex-col items-center justify-center bg-primary text-white rounded-full px-5 py-2.5 active:scale-90 transition-all duration-200 shadow-lg shadow-primary/25">
+      <i data-lucide="candlestick-chart" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wider mt-0.5" data-i18n="nav_trade">Trade</span>
+    </button>
+    <button data-view-target="journal" class="mobile-nav-btn flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-200">
+      <i data-lucide="book-open" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wider mt-1" data-i18n="nav_journal">Journal</span>
+    </button>
+    <button data-view-target="subscription" class="mobile-nav-btn flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-200">
+      <i data-lucide="award" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wider mt-1" data-i18n="nav_subscription">Go Pro</span>
+    </button>
+  </nav>
+
+  <!-- Razorpay Payment Modal Mockup -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center hidden" id="payment-modal">
+    <div id="payment-modal-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative bg-white text-slate-800 w-full max-w-md mx-4 rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 z-10" id="modal-content">
+      <!-- Razorpay Header -->
+      <div class="bg-[#2B3445] p-5 flex justify-between items-center text-white">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+            <span class="text-[#3395FF] font-extrabold text-lg">R</span>
+          </div>
+          <div>
+            <h5 class="text-xs font-extrabold leading-tight">TradeMaster</h5>
+            <p class="text-[9px] opacity-75">Payment Portal</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="text-[9px] uppercase tracking-wider opacity-60">Amount Payable</p>
+          <p class="font-display-lg text-base font-bold tracking-tight text-white" id="modal-amount">₹999.00</p>
+        </div>
+      </div>
+      <!-- Payment Content -->
+      <div class="p-6 bg-slate-50 text-slate-800 flex flex-col gap-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Preferred Methods</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button id="pay-upi-btn" class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-500 transition-colors shadow-sm text-left">
+              <span class="p-1 bg-blue-50 rounded-lg text-blue-500">
+                <i data-lucide="smartphone" class="w-4 h-4"></i>
+              </span>
+              <span class="text-xs font-bold text-slate-700">UPI / QR</span>
+            </button>
+            <button id="pay-card-btn" class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-500 transition-colors shadow-sm text-left">
+              <span class="p-1 bg-blue-50 rounded-lg text-blue-500">
+                <i data-lucide="credit-card" class="w-4 h-4"></i>
+              </span>
+              <span class="text-xs font-bold text-slate-700">Cards</span>
+            </button>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div id="upi-qr-section" class="flex flex-col items-center gap-2 p-3 bg-white border border-slate-100 rounded-xl hidden">
+            <i data-lucide="qr-code" class="w-24 h-24 text-slate-700"></i>
+            <span class="text-[10px] text-slate-400 font-semibold uppercase">Scan QR to pay ₹<span class="qr-amt">999</span></span>
+            <button id="pay-confirm-qr-btn" class="w-full bg-[#3395FF] hover:bg-[#1A85FF] text-white py-2 rounded-lg text-xs font-bold transition-all mt-1">
+              Simulate Successful UPI Scan
+            </button>
+          </div>
+          <div id="card-details-section" class="flex flex-col gap-2 p-3 bg-white border border-slate-100 rounded-xl hidden">
+            <input class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs" type="text" placeholder="Card Number (4111 2222 ...)" />
+            <div class="grid grid-cols-2 gap-2">
+              <input class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs" type="text" placeholder="Expiry (MM/YY)" />
+              <input class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs" type="password" placeholder="CVV" />
+            </div>
+            <button id="pay-confirm-card-btn" class="w-full bg-[#3395FF] hover:bg-[#1A85FF] text-white py-2 rounded-lg text-xs font-bold transition-all mt-1">
+              Pay Now (Simulation)
+            </button>
+          </div>
+        </div>
+        <div class="border-t border-slate-200/50 pt-4 flex items-center justify-between text-[9px] text-slate-400">
+          <div class="flex items-center gap-1">
+            <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span>SECURE PAYMENT</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span>PCI-DSS COMPLIANT</span>
+          </div>
+        </div>
+      </div>
+      <!-- Close Button Overlay -->
+      <button class="absolute top-3.5 right-3 text-white/60 hover:text-white transition-colors" id="payment-modal-close-btn">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- TradingView Widgets Script -->
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <!-- Core Client App -->
+  <script src="/public/app.js"></script>
+</body>
+</html>
