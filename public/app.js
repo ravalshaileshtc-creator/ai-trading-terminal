@@ -1283,29 +1283,36 @@ function setupTradingPanel() {
   document.querySelectorAll('.qty-pct-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const pct = parseFloat(btn.getAttribute('data-pct'));
-      
-      const currentSymbol = state.orderForm.symbol;
-      if (!state.marketPrices[currentSymbol]) return;
-      const currentPrice = state.marketPrices[currentSymbol].price;
+      const currentSymbol = state.orderForm.symbol || 'RELIANCE';
+      const priceData = state.marketPrices[currentSymbol];
+      const currentPrice = priceData ? priceData.price : 1270.00;
 
-      // 5x Leverage buying power: Max margin is current balance.
-      // Max position value is balance * 5. Max size is (balance * 5) / price
-      const maxPositionVal = state.user.paper_balance * 5;
+      const maxPositionVal = (state.user.paper_balance || 100000) * 5;
       const maxSize = maxPositionVal / currentPrice;
 
-      const size = maxSize * pct;
-      document.getElementById('order-qty').value = size.toFixed(4);
+      const size = Math.floor(maxSize * pct);
+      const qtyInput = document.getElementById('order-qty');
+      if (qtyInput) qtyInput.value = size || 10;
       updateOrderEstimates();
     });
   });
 
   // Execute buy/sell triggers
-  document.getElementById('order-buy-btn').addEventListener('click', () => placeOrder('BUY'));
-  document.getElementById('order-sell-btn').addEventListener('click', () => placeOrder('SHORT'));
+  const buyBtn = document.getElementById('order-buy-btn');
+  if (buyBtn) buyBtn.addEventListener('click', () => placeOrder('BUY'));
+  
+  const sellBtn = document.getElementById('order-sell-btn');
+  if (sellBtn) sellBtn.addEventListener('click', () => placeOrder('SHORT'));
   
   // Set default max size & estimates
   updateMaxBuyingPower();
   updateOrderEstimates();
+
+  // Set default buy/sell button prices preview
+  const buyPriceEl = document.getElementById('order-btn-buy-price');
+  if (buyPriceEl) buyPriceEl.innerText = `Price: ₹1270.00`;
+  const sellPriceEl = document.getElementById('order-btn-sell-price');
+  if (sellPriceEl) sellPriceEl.innerText = `Price: ₹1270.00`;
 }
 
 function updateOrderFormButtons() {
@@ -1333,12 +1340,15 @@ function updateOrderEstimates() {
   const priceData = state.marketPrices[currentSymbol];
   const currentPrice = priceData ? priceData.price : 1270.00;
 
-  const qty = parseFloat(document.getElementById('order-qty').value) || 10;
+  const qtyInput = document.getElementById('order-qty');
+  const qty = qtyInput ? (parseFloat(qtyInput.value) || 10) : 10;
   
   let entryPrice = currentPrice;
   if (state.orderForm.orderType === 'LIMIT') {
-    const limitInput = parseFloat(document.getElementById('order-limit-price').value);
-    if (!isNaN(limitInput) && limitInput > 0) entryPrice = limitInput;
+    const limitInput = document.getElementById('order-limit-price');
+    if (limitInput && !isNaN(parseFloat(limitInput.value)) && parseFloat(limitInput.value) > 0) {
+      entryPrice = parseFloat(limitInput.value);
+    }
   }
 
   const positionValue = entryPrice * qty;
@@ -1353,18 +1363,18 @@ function updateOrderEstimates() {
 }
 
 async function placeOrder(type) {
-  const symbol = state.orderForm.symbol || 'RELIANCE';
+  const symbolSelect = document.getElementById('trade-symbol-selector');
+  const symbol = (symbolSelect ? symbolSelect.value : null) || state.orderForm.symbol || 'RELIANCE';
   const orderType = state.orderForm.orderType || 'MARKET';
-  const qty = parseFloat(document.getElementById('order-qty').value) || 10;
-
-  if (isNaN(qty) || qty <= 0) {
-    showToast("Please enter a valid quantity.", "error");
-    return;
-  }
+  const qtyInput = document.getElementById('order-qty');
+  const qty = qtyInput ? (parseFloat(qtyInput.value) || 10) : 10;
 
   let limitPrice = 1270.00;
   if (orderType === 'LIMIT') {
-    limitPrice = parseFloat(document.getElementById('order-limit-price').value) || 1270.00;
+    const limitInput = document.getElementById('order-limit-price');
+    if (limitInput && !isNaN(parseFloat(limitInput.value))) {
+      limitPrice = parseFloat(limitInput.value) || 1270.00;
+    }
   }
 
   const priceData = state.marketPrices[symbol];
@@ -1384,7 +1394,7 @@ async function placeOrder(type) {
 
   state.activePositions.push(newPos);
   renderActivePositionsTable();
-  showToast(`Paper Order executed for ${symbol} ${type} @ ₹${execPrice.toFixed(2)}!`, "success");
+  showToast(`Paper Order executed for ${symbol} ${type} (${qty} shares) @ ₹${execPrice.toFixed(2)}!`, "success");
 
   try {
     fetch('/api/trade/place', {
