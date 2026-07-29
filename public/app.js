@@ -773,7 +773,7 @@ function startLiveClientSimulationEngine() {
     }
   }, 1500);
 
-  // 2. REAL-TIME AI REINFORCEMENT AUTO-LEARNING LOOP (Every 4 Seconds)
+  // 2. REAL-TIME AI REINFORCEMENT AUTO-LEARNING LOOP (Every 2 Seconds)
   aiAutoLearnInterval = setInterval(() => {
     if (!state.aiState) {
       state.aiState = {
@@ -798,18 +798,22 @@ function startLiveClientSimulationEngine() {
       };
     }
 
-    state.aiState.statesLearned += 1;
-    state.aiState.totalPredictions += 1;
-    const rewardDelta = (Math.random() > 0.3 ? 0.5 : -0.2);
+    // Increment metrics live every 2 seconds!
+    state.aiState.statesLearned += Math.floor(Math.random() * 2) + 1;
+    state.aiState.totalPredictions += Math.floor(Math.random() * 3) + 1;
+    const rewardDelta = (Math.random() > 0.35 ? 0.4 : -0.2);
     state.aiState.netReward = parseFloat((state.aiState.netReward + rewardDelta).toFixed(1));
-    state.aiState.accuracy = parseFloat(Math.min(94.5, state.aiState.accuracy + (Math.random() * 0.2 - 0.05)).toFixed(1));
+    state.aiState.accuracy = parseFloat(Math.min(94.5, state.aiState.accuracy + (Math.random() * 0.15 - 0.04)).toFixed(1));
 
+    // Shift Q-table weights dynamically
     state.aiState.qtable.forEach(r => {
-      r.q_value = parseFloat((r.q_value + (Math.random() * 0.1 - 0.04)).toFixed(2));
+      r.q_value = parseFloat((r.q_value + (Math.random() * 0.12 - 0.05)).toFixed(2));
     });
 
     const statesEl = document.getElementById('ai-metrics-states');
-    if (statesEl) statesEl.innerText = state.aiState.statesLearned;
+    if (statesEl) {
+      statesEl.innerText = state.aiState.statesLearned;
+    }
     
     const accEl = document.getElementById('ai-metrics-accuracy');
     if (accEl) accEl.innerText = `${state.aiState.accuracy}%`;
@@ -826,7 +830,7 @@ function startLiveClientSimulationEngine() {
     if (state.activeView === 'ai') {
       drawQTableHeatmap(state.aiState.qtable);
     }
-  }, 4000);
+  }, 2000);
 }
 
 // ----------------- UI UPDATES AND RENDERERS -----------------
