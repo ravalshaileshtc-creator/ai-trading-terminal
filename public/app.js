@@ -1302,8 +1302,9 @@ function setupTradingPanel() {
   document.getElementById('order-buy-btn').addEventListener('click', () => placeOrder('BUY'));
   document.getElementById('order-sell-btn').addEventListener('click', () => placeOrder('SHORT'));
   
-  // Set default max size
+  // Set default max size & estimates
   updateMaxBuyingPower();
+  updateOrderEstimates();
 }
 
 function updateOrderFormButtons() {
@@ -1315,22 +1316,23 @@ function updateOrderFormButtons() {
 }
 
 function updateMaxBuyingPower() {
-  const currentSymbol = state.orderForm.symbol;
-  if (!state.marketPrices[currentSymbol]) return;
-  const currentPrice = state.marketPrices[currentSymbol].price;
+  const currentSymbol = state.orderForm.symbol || 'RELIANCE';
+  const priceData = state.marketPrices[currentSymbol];
+  const currentPrice = priceData ? priceData.price : 1270.00;
 
-  const maxPositionVal = state.user.paper_balance * 5;
+  const maxPositionVal = (state.user.paper_balance || 100000) * 5;
   const maxSize = maxPositionVal / currentPrice;
   
-  document.getElementById('order-max-size').innerText = `Max: ${maxSize.toFixed(2)}`;
+  const maxEl = document.getElementById('order-max-size');
+  if (maxEl) maxEl.innerText = `Max: ${maxSize.toFixed(2)}`;
 }
 
 function updateOrderEstimates() {
-  const currentSymbol = state.orderForm.symbol;
-  if (!state.marketPrices[currentSymbol]) return;
-  const currentPrice = state.marketPrices[currentSymbol].price;
+  const currentSymbol = state.orderForm.symbol || 'RELIANCE';
+  const priceData = state.marketPrices[currentSymbol];
+  const currentPrice = priceData ? priceData.price : 1270.00;
 
-  const qty = parseFloat(document.getElementById('order-qty').value) || 0;
+  const qty = parseFloat(document.getElementById('order-qty').value) || 10;
   
   let entryPrice = currentPrice;
   if (state.orderForm.orderType === 'LIMIT') {
@@ -1342,8 +1344,11 @@ function updateOrderEstimates() {
   const marginRequired = positionValue / 5; // 5x leverage
 
   const currencySymbol = '₹';
-  document.getElementById('order-est-value').innerText = `${currencySymbol}${positionValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-  document.getElementById('order-est-margin').innerText = `₹${marginRequired.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  const valEl = document.getElementById('order-est-value');
+  if (valEl) valEl.innerText = `${currencySymbol}${positionValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  
+  const marginEl = document.getElementById('order-est-margin');
+  if (marginEl) marginEl.innerText = `₹${marginRequired.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
 
 async function placeOrder(type) {
