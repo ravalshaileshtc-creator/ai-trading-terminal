@@ -241,7 +241,8 @@ function switchView(viewName) {
     updateAICopilot();
   } else if (viewName === 'ai') {
     resizeAICanvases();
-    pollAPI();
+    pollAIStats();
+    pollAIPatterns();
   }
 }
 
