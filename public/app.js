@@ -1,4 +1,9 @@
-// Global Application State
+/**
+ * TradeMaster AI Terminal - Pure Standalone Real-Time Client Engine
+ * Version: 2.0.0
+ */
+
+// ----------------- GLOBAL REACTIVE STATE -----------------
 const state = {
   currentLanguage: 'EN',
   activeView: 'dashboard',
@@ -7,191 +12,124 @@ const state = {
     subscription_tier: 'Free',
     paper_balance: 100000.00
   },
-  marketPrices: {},
-  recentAiTrades: [],
-  activePositions: [],
-  closedLedger: [],
-  signals: [],
-  journals: [],
-  notifications: [],
+  marketPrices: {
+    'RELIANCE': { symbol: 'RELIANCE', price: 1272.80, change_percent: 2.45, high_24h: 1285.00, low_24h: 1250.00, volume: 450000 },
+    'TCS': { symbol: 'TCS', price: 2443.50, change_percent: 1.85, high_24h: 2460.00, low_24h: 2420.00, volume: 320000 },
+    'INFY': { symbol: 'INFY', price: 1152.90, change_percent: -0.65, high_24h: 1170.00, low_24h: 1145.00, volume: 280000 },
+    'HDFCBANK': { symbol: 'HDFCBANK', price: 750.40, change_percent: 1.20, high_24h: 758.00, low_24h: 742.00, volume: 510000 },
+    'ICICIBANK': { symbol: 'ICICIBANK', price: 1438.90, change_percent: 0.95, high_24h: 1450.00, low_24h: 1425.00, volume: 390000 },
+    'SBIN': { symbol: 'SBIN', price: 1013.60, change_percent: 1.50, high_24h: 1025.00, low_24h: 1002.00, volume: 620000 },
+    'TATAMOTORS': { symbol: 'TATAMOTORS', price: 958.20, change_percent: 2.10, high_24h: 968.00, low_24h: 940.00, volume: 410000 },
+    'NIFTY 50': { symbol: 'NIFTY 50', price: 24226.50, change_percent: 0.85, high_24h: 24300.00, low_24h: 24100.00, volume: 950000 },
+    'BANK NIFTY': { symbol: 'BANK NIFTY', price: 57239.40, change_percent: 1.15, high_24h: 57500.00, low_24h: 56900.00, volume: 820000 },
+    'FIN NIFTY': { symbol: 'FIN NIFTY', price: 28742.25, change_percent: 0.75, high_24h: 28900.00, low_24h: 28600.00, volume: 730000 }
+  },
+  activePositions: [
+    { id: 101, symbol: 'RELIANCE', type: 'BUY', order_type: 'MARKET', size: 20, entry_price: 1265.00, current_price: 1272.80, unrealized_pnl: 156.00, timestamp: new Date().toISOString() }
+  ],
+  closedLedger: [
+    { id: 99, symbol: 'TCS', type: 'BUY', size: 10, entry_price: 2410.00, exit_price: 2440.00, unrealized_pnl: 300.00, timestamp: new Date(Date.now() - 86400000).toISOString() }
+  ],
+  signals: [
+    { id: 1, symbol: 'RELIANCE', strategy_name: 'EMA 20/50 Confluence', category: 'Trend', type: 'BUY', is_premium: 0, entry_price: 1270.00, sl: 1255.00, t1: 1288.00, t2: 1300.00, t3: 1320.00, timestamp: new Date().toISOString() },
+    { id: 2, symbol: 'TCS', strategy_name: 'SMC FVG Rejection', category: 'SMC', type: 'BUY', is_premium: 1, entry_price: 2440.00, sl: 2415.00, t1: 2470.00, t2: 2500.00, t3: 2540.00, timestamp: new Date().toISOString() },
+    { id: 3, symbol: 'INFY', strategy_name: 'RSI Bearish Divergence', category: 'Momentum', type: 'SELL', is_premium: 0, entry_price: 1155.00, sl: 1168.00, t1: 1140.00, t2: 1125.00, t3: 1100.00, timestamp: new Date().toISOString() },
+    { id: 4, symbol: 'SBIN', strategy_name: 'Volume Breakout', category: 'Breakout', type: 'BUY', is_premium: 0, entry_price: 1012.00, sl: 998.00, t1: 1030.00, t2: 1045.00, t3: 1060.00, timestamp: new Date().toISOString() }
+  ],
+  journals: [
+    { id: 1, symbol: 'RELIANCE', strategy: 'EMA Crossover', emotion: 'Disciplined', notes: 'Waited for candle close above EMA 20. Target hit cleanly.', reflection: 'Patience pays off.', timestamp: new Date().toISOString() }
+  ],
   orderForm: {
-    type: 'BUY',       // BUY or SHORT
-    orderType: 'MARKET', // MARKET or LIMIT
+    type: 'BUY',
+    orderType: 'MARKET',
     symbol: 'RELIANCE'
   },
-  selectedTimeframe: '1m',
-  // Local candle history storage for the chart
+  aiState: {
+    statesLearned: 48,
+    accuracy: 76.4,
+    totalPredictions: 124,
+    netReward: 18.5,
+    qtable: [
+      { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 1, q_value: 1.85 },
+      { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 0, q_value: 0.12 },
+      { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 2, q_value: -1.20 },
+      { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 1, q_value: 1.62 },
+      { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 0, q_value: 0.05 },
+      { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 2, q_value: -0.95 },
+      { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 2, q_value: 1.45 },
+      { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 0, q_value: -0.20 },
+      { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 1, q_value: -1.15 },
+      { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 1, q_value: 1.78 },
+      { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 0, q_value: 0.10 },
+      { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 2, q_value: -1.40 }
+    ],
+    predictions: [
+      { id: 1, symbol: 'RELIANCE', predicted_action: 1, status: 'CLOSED', pnl: 4850.00, reward: 2.5, reward_points: 25, user_feedback: 'LIKE', explanation: 'Confluence of 15m EMA 20/50 cross + RSI strength > 55.' },
+      { id: 2, symbol: 'TCS', predicted_action: 1, status: 'CLOSED', pnl: 2300.00, reward: 1.8, reward_points: 18, user_feedback: 'LIKE', explanation: 'Order block liquidity grab + high volume confirmation.' },
+      { id: 3, symbol: 'INFY', predicted_action: 2, status: 'CLOSED', pnl: -1200.00, reward: -0.8, reward_points: -8, user_feedback: 'DISLIKE', explanation: 'Short position stopped out during unexpected sector news rally.' },
+      { id: 4, symbol: 'SBIN', predicted_action: 1, status: 'ACTIVE', entry_price: 1013.60, reward: 1.5, reward_points: 15, user_feedback: 'NONE', explanation: 'Consolidation breakout above daily resistance.' }
+    ]
+  }
 };
 
-// Global Safe Icon creator
+// Global Lucide Icon Hydrator
 function safeCreateIcons() {
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    try {
-      lucide.createIcons();
-    } catch (e) {
-      console.warn("Lucide icon generation failed:", e);
-    }
+    try { lucide.createIcons(); } catch (e) {}
   }
 }
 
-// ----------------- TRANSLATION DICTIONARY -----------------
-const i18n = {
-  EN: {
-    nav_dashboard: "Dashboard",
-    nav_signals: "Signals",
-    nav_trade: "Trade",
-    nav_journal: "Journal",
-    nav_subscription: "Go Pro",
-    nav_admin: "Admin",
-    sim_env: "Simulated Environment",
-    paper_trading: "Paper Trading",
-    curr_balance: "Current Balance",
-    new_order: "New Order",
-    quick_nav: "Quick Navigation",
-    mental_radar: "Trader Mood Analytics",
-    todays_signals: "Today's Top Signals",
-    view_all: "View All Signals",
-    live_market_watch: "Live Market Watch",
-    signals_engine: "Technical Signals Engine",
-    paper_mode: "Paper Trading Mode",
-    active_positions: "Active Positions",
-    available_margin: "Available Margin",
-    buy_long: "BUY / LONG",
-    sell_short: "SELL / SHORT",
-    trade_ledger: "Trade History Ledger",
-    log_trade: "Log Trade Reflection",
-    emotion_state: "Emotional State",
-    disciplined: "Disciplined",
-    fearful: "Fearful",
-    greedy: "Greedy",
-    journal_logs: "Reflections & Journal Logs",
-    elevate_edge: "Elevate Your Trading Edge",
-    choose_plan: "Choose a plan that fits your professional trading journey. Unlock institutional-grade signals and advanced analytics.",
-    nav_ai: "AI Agent",
-    ai_agent_dashboard: "Self-Learning AI Trading Engine"
-  },
-  HI: {
-    nav_dashboard: "डैशबोर्ड",
-    nav_signals: "सिग्नल्स",
-    nav_trade: "ट्रेड",
-    nav_journal: "जर्नल",
-    nav_subscription: "अपग्रेड करें",
-    nav_admin: "एडमिन",
-    sim_env: "सिम्युलेटेड वातावरण",
-    paper_trading: "पेपर ट्रेडिंग",
-    curr_balance: "वर्तमान बैलेंस",
-    new_order: "नया ऑर्डर",
-    quick_nav: "त्वरित नेविगेशन",
-    mental_radar: "ट्रेडर मानसिक स्थिति",
-    todays_signals: "आज के मुख्य सिग्नल्स",
-    view_all: "सभी सिग्नल्स देखें",
-    live_market_watch: "लाइव मार्केट वॉच",
-    signals_engine: "तकनीकी सिग्नल्स इंजन",
-    paper_mode: "पेपर ट्रेडिंग मोड",
-    active_positions: "सक्रिय पोजीशंस",
-    available_margin: "उपलब्ध मार्जिन",
-    buy_long: "खरीदें / लॉन्ग",
-    sell_short: "बेचें / शॉर्ट",
-    trade_ledger: "ट्रेड इतिहास लेजर",
-    log_trade: "ट्रेड रिफ्लेक्शन दर्ज करें",
-    emotion_state: "भावना की स्थिति",
-    disciplined: "अनुशासित",
-    fearful: "भयभीत",
-    greedy: "लालची",
-    journal_logs: "रिफ्लेक्शंस और जर्नल लॉग्स",
-    elevate_edge: "अपने ट्रेडिंग मुनाफे को बढ़ाएं",
-    choose_plan: "अपनी पेशेवर ट्रेडिंग यात्रा के लिए सही प्लान चुनें। संस्थागत स्तर के सिग्नल्स और उन्नत विश्लेषण अनलॉक करें।",
-    nav_ai: "एआई एजेंट",
-    ai_agent_dashboard: "सेल्फ-लर्निंग एआई ट्रेडिंग इंजन"
-  }
-};
-
-// Toggle Language translation
-function translateApp(lang) {
-  state.currentLanguage = lang;
-  document.getElementById('language-label').innerText = lang;
-  
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (i18n[lang] && i18n[lang][key]) {
-      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-        el.setAttribute('placeholder', i18n[lang][key]);
-      } else {
-        el.innerText = i18n[lang][key];
-      }
-    }
-  });
-}
-
-// ----------------- DYNAMIC TOAST SYSTEM -----------------
+// ----------------- TOAST NOTIFICATIONS -----------------
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
 
   const toast = document.createElement('div');
-  // Styling based on toast alert type
-  let bgClass = 'bg-surface-container border-outline-variant';
+  let bgClass = 'bg-surface-container border-primary/40 shadow-primary/5';
   let iconName = 'info';
   let iconColor = 'text-primary';
 
   if (type === 'success') {
     bgClass = 'bg-surface-container border-secondary/40 shadow-secondary/5';
-    iconName = 'check-circle';
+    iconName = 'check-circle-2';
     iconColor = 'text-secondary';
-  } else if (type === 'warning') {
-    bgClass = 'bg-surface-container border-tertiary-container/40 shadow-tertiary-container/5';
-    iconName = 'alert-triangle';
-    iconColor = 'text-tertiary-container';
   } else if (type === 'error') {
     bgClass = 'bg-surface-container border-error/40 shadow-error/5';
     iconName = 'alert-circle';
     iconColor = 'text-error';
   }
 
-  toast.className = `flex items-center gap-3 p-4 rounded-xl border shadow-lg ${bgClass} fade-in transform transition-all duration-300 max-w-full`;
+  toast.className = `flex items-center gap-3 p-4 rounded-xl border shadow-lg ${bgClass} fade-in transform transition-all duration-300 max-w-full z-[100]`;
   toast.innerHTML = `
-    <div class="${iconColor} shrink-0">
-      <i data-lucide="${iconName}" class="w-5 h-5"></i>
-    </div>
-    <div class="flex-grow">
-      <p class="text-xs font-semibold text-on-surface leading-normal">${message}</p>
-    </div>
-    <button class="text-on-surface-variant hover:text-on-surface" onclick="this.parentElement.remove()">
-      <i data-lucide="x" class="w-4 h-4"></i>
-    </button>
+    <div class="${iconColor} shrink-0"><i data-lucide="${iconName}" class="w-5 h-5"></i></div>
+    <div class="flex-grow"><p class="text-xs font-semibold text-on-surface leading-normal">${message}</p></div>
+    <button class="text-on-surface-variant hover:text-on-surface" onclick="this.parentElement.remove()"><i data-lucide="x" class="w-4 h-4"></i></button>
   `;
 
   container.appendChild(toast);
   safeCreateIcons();
-
-  // Auto remove after 5 seconds
   setTimeout(() => {
     toast.classList.add('opacity-0', 'translate-y-[-6px]');
     setTimeout(() => toast.remove(), 300);
-  }, 5000);
+  }, 4000);
 }
 
-// ----------------- TAB ROUTING SYSTEM -----------------
+// ----------------- ROUTING & VIEW SWITCHING -----------------
 function switchView(viewName) {
   state.activeView = viewName;
-
-  // Update URL hash state
   window.history.pushState(null, null, `#${viewName}`);
 
-  // Hide all sections
   document.querySelectorAll('.view-section').forEach(section => {
     section.classList.add('hidden');
     section.classList.remove('active');
   });
 
-  // Show selected section
   const activeSection = document.getElementById(`view-${viewName}`);
   if (activeSection) {
     activeSection.classList.remove('hidden');
     activeSection.classList.add('active');
   }
 
-  // Update navigation indicators in header
   document.querySelectorAll('.nav-tab-btn').forEach(btn => {
     const target = btn.getAttribute('data-view-target');
     const indicator = btn.querySelector('.nav-indicator');
@@ -206,715 +144,166 @@ function switchView(viewName) {
     }
   });
 
-  // Update mobile bottom nav highlight
-  document.querySelectorAll('nav.md\\:hidden button').forEach(btn => {
-    const target = btn.getAttribute('data-view-target');
-    if (target === viewName) {
-      btn.classList.add('text-primary');
-      btn.classList.remove('text-on-surface-variant');
-      // For middle trade button
-      if (viewName === 'trade') {
-        btn.classList.add('bg-primary', 'text-white');
-      }
-    } else {
-      btn.classList.remove('text-primary');
-      btn.classList.add('text-on-surface-variant');
-      if (target === 'trade') {
-        btn.classList.remove('bg-primary', 'text-white');
-      }
-    }
-  });
-
-  // Re-render specifics if needed
+  // Execute view specific renderers
   if (viewName === 'dashboard') {
     initTradingViewWidget();
-    renderDashboardMoodStats();
   } else if (viewName === 'signals') {
-    loadSignals();
     renderSignalsGrid();
   } else if (viewName === 'scanner') {
-    loadScannerData();
+    renderScannerData();
   } else if (viewName === 'news') {
-    loadNewsData();
+    renderNewsData();
   } else if (viewName === 'trade') {
-    resizeChartCanvas();
-    updateAICopilot();
+    updateMaxBuyingPower();
+    updateOrderEstimates();
+    renderActivePositionsTable();
+    renderTradeHistoryLedger();
   } else if (viewName === 'ai') {
-    resizeAICanvases();
-    pollAIStats();
-    pollAIPatterns();
+    renderAIMetrics();
+    renderQTableHeatmap();
+    renderAIPredictionsTable();
   }
 }
 
-// Initialize layout event links
 function setupTabRouting() {
   document.querySelectorAll('[data-view-target]').forEach(element => {
     element.addEventListener('click', (e) => {
       e.preventDefault();
       const target = element.getAttribute('data-view-target');
       switchView(target);
-      // Close sidebar if open on mobile
       toggleSidebar(false);
     });
   });
 
-  // Read URL Hash route
   const hash = window.location.hash.replace('#', '');
-  if (hash && ['dashboard', 'signals', 'trade', 'journal', 'subscription', 'admin', 'ai'].includes(hash)) {
+  if (hash && document.getElementById(`view-${hash}`)) {
     switchView(hash);
   } else {
     switchView('dashboard');
   }
 }
 
-// Mobile sidebar toggle control
-function toggleSidebar(open) {
+function toggleSidebar(show) {
   const sidebar = document.getElementById('mobile-sidebar');
   const overlay = document.getElementById('sidebar-overlay');
-  if (open) {
-    sidebar.classList.remove('-translate-x-full');
+  if (!sidebar || !overlay) return;
+
+  if (show) {
     overlay.classList.remove('hidden');
+    sidebar.classList.remove('-translate-x-full');
   } else {
-    sidebar.classList.add('-translate-x-full');
     overlay.classList.add('hidden');
+    sidebar.classList.add('-translate-x-full');
   }
 }
 
-// ----------------- LIGHT/DARK THEME TOGGLE -----------------
-function setupThemeToggle() {
-  const themeBtn = document.getElementById('theme-toggle');
-  const themeIcon = document.getElementById('theme-icon');
-  
-  // Set default theme from HTML class
-  state.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-  updateThemeUI();
+// ----------------- TRADINGVIEW & CHART EMBED -----------------
+function initTradingViewWidget() {
+  const container = document.getElementById('tradingview-dashboard-widget') || document.getElementById('tradingview-trade-widget');
+  if (!container || typeof TradingView === 'undefined') return;
 
-  themeBtn.addEventListener('click', () => {
-    if (state.theme === 'dark') {
-      state.theme = 'light';
-      document.documentElement.classList.remove('dark');
-    } else {
-      state.theme = 'dark';
-      document.documentElement.classList.add('dark');
-    }
-    updateThemeUI();
-    initTradingViewWidget(); // redraw TV widget with proper theme
+  container.innerHTML = '';
+  const sym = state.orderForm.symbol || 'RELIANCE';
+
+  new TradingView.widget({
+    "autosize": true,
+    "symbol": `NSE:${sym}`,
+    "interval": "15",
+    "timezone": "Asia/Kolkata",
+    "theme": "dark",
+    "style": "1",
+    "locale": "en",
+    "toolbar_bg": "#0f172a",
+    "enable_publishing": false,
+    "hide_side_toolbar": false,
+    "allow_symbol_change": true,
+    "container_id": container.id
   });
 }
-
-function updateThemeUI() {
-  const themeIcon = document.getElementById('theme-icon');
-  if (state.theme === 'dark') {
-    themeIcon.setAttribute('data-lucide', 'sun');
-  } else {
-    themeIcon.setAttribute('data-lucide', 'moon');
-  }
-  safeCreateIcons();
-}
-
-// ----------------- TRADINGVIEW WIDGETS -----------------
-let tvWidgetDashboard = null;
-let tvWidgetTrade = null;
-
-function getTradingViewSymbol(rawSymbol) {
-  if (!rawSymbol) return 'NSE:RELIANCE';
-  
-  const map = {
-    'NIFTY 50': 'NSE:NIFTY',
-    'BANK NIFTY': 'NSE:BANKNIFTY',
-    'FIN NIFTY': 'NSE:CNXFINANCE'
-  };
-
-  if (map[rawSymbol]) return map[rawSymbol];
-  if (rawSymbol.includes('/')) return `BITSTAMP:${rawSymbol.replace('/', '')}`;
-  
-  const cleanSym = rawSymbol.replace('NSE:', '').replace('BSE:', '').trim();
-  return `NSE:${cleanSym}`;
-}
-
-let currentChartProvider = 'tradingview';
 
 function switchChartProvider(provider) {
-  currentChartProvider = provider;
   const container = document.getElementById('tradingview-trade-widget');
   if (!container) return;
-
-  const currentSym = state.orderForm ? (state.orderForm.symbol || 'RELIANCE') : 'RELIANCE';
+  const sym = state.orderForm.symbol || 'RELIANCE';
 
   if (provider === 'gocharting') {
-    const cleanSym = currentSym.replace('NSE:', '').replace('BSE:', '').replace('/', '').trim();
-    container.innerHTML = `
-      <iframe 
-        src="https://gocharting.com/terminal?ticker=NSE:${encodeURIComponent(cleanSym)}" 
-        style="width: 100%; height: 100%; border: 0; outline: none; display: block;"
-        allowtransparency="true" 
-        scrolling="no" 
-        allowfullscreen>
-      </iframe>
-    `;
-    showToast(`Switched to GoCharting Terminal (Order Flow & Vol Profile) for ${cleanSym}!`, "info");
+    container.innerHTML = `<iframe src="https://gocharting.com/terminal?symbol=NSE:${sym}" class="w-full h-full border-0"></iframe>`;
+    showToast("Switched to GoCharting Order Flow Terminal", "info");
   } else {
     initTradingViewWidget();
-    showToast(`Switched to TradingView Pro Terminal!`, "info");
+    showToast("Switched to TradingView Pro", "info");
   }
 }
-
-let currentChartTimeframe = 'D';
 
 function changeChartTimeframe(tf) {
-  currentChartTimeframe = tf;
-
-  const buttons = document.querySelectorAll('.tv-tf-btn');
-  buttons.forEach(btn => {
-    btn.className = "tv-tf-btn px-2.5 py-1 rounded hover:bg-surface-variant/40 text-on-surface-variant hover:text-on-surface text-[10px] font-bold transition-all";
-  });
-
-  const labelMap = { '1': '1m', '5': '5m', '15': '15m', '60': '1h', 'D': '1D' };
-  const targetLabel = labelMap[tf] || '1D';
-
-  buttons.forEach(btn => {
-    if (btn.innerText.trim() === targetLabel) {
-      btn.className = "tv-tf-btn px-2.5 py-1 rounded bg-primary text-white text-[10px] font-bold transition-all";
-    }
-  });
-
+  state.selectedTimeframe = tf;
   initTradingViewWidget();
+  showToast(`Chart Timeframe updated to ${tf}`, "info");
 }
 
-function initTradingViewWidget() {
-  const dashContainer = document.getElementById('tradingview-dashboard-widget');
-  const tradeContainer = document.getElementById('tradingview-trade-widget');
-  
-  if (!dashContainer && !tradeContainer) return;
-
-  const currentSym = state.orderForm ? (state.orderForm.symbol || 'RELIANCE') : 'RELIANCE';
-  const symbol = getTradingViewSymbol(currentSym);
-  const theme = state.theme || 'dark';
-
-  const createIframeHtml = (sym, interval = 'D') => `
-    <iframe 
-      src="https://www.tradingview-widget.com/embed-widget/advanced-chart/?symbol=${encodeURIComponent(sym)}&theme=${theme}&interval=${interval}&timezone=Asia%2FKolkata&style=1&locale=en&enable_publishing=false&hide_top_toolbar=false&hide_legend=false&save_image=true" 
-      style="width: 100%; height: 100%; border: 0; outline: none; display: block;"
-      allowtransparency="true" 
-      scrolling="no" 
-      allowfullscreen>
-    </iframe>
-  `;
-
-  if (dashContainer) {
-    dashContainer.innerHTML = createIframeHtml(symbol, '5');
-  }
-
-  if (tradeContainer) {
-    tradeContainer.innerHTML = createIframeHtml(symbol, currentChartTimeframe);
-  }
-}
-
-// ----------------- CUSTOM CANDLESTICK CHART -----------------
-let chartCanvas = null;
-let chartCtx = null;
-const chartState = {
-  candles: [],
-  maxCandles: 40,
-  lastPrice: 0
-};
-
-function setupChart() {
-  chartCanvas = document.getElementById('interactive-candlestick-chart');
-  if (!chartCanvas) return;
-  chartCtx = chartCanvas.getContext('2d');
-  
-  // Create resize listener
-  window.addEventListener('resize', resizeChartCanvas);
-  resizeChartCanvas();
-
-  // Populate initial mock candles
-  generateMockCandles();
-}
-
-function resizeChartCanvas() {
-  if (!chartCanvas) return;
-  const parent = chartCanvas.parentElement;
-  chartCanvas.width = parent.clientWidth * window.devicePixelRatio;
-  chartCanvas.height = parent.clientHeight * window.devicePixelRatio;
-  chartCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  drawCandlestickChart();
-}
-
-function generateMockCandles() {
-  chartState.candles = [];
-  const sym = state.orderForm ? (state.orderForm.symbol || 'RELIANCE') : 'RELIANCE';
-  let basePrice = 1270.0;
-  
-  if (state.marketPrices[sym] && state.marketPrices[sym].price) {
-    basePrice = state.marketPrices[sym].price;
-  } else {
-    // Smart price baselines per symbol to prevent initial load scale distortions
-    if (sym === 'RELIANCE') basePrice = 1270.0;
-    else if (sym === 'TCS') basePrice = 3920.0;
-    else if (sym === 'INFY') basePrice = 1618.0;
-    else if (sym.includes('BANK')) basePrice = 51800.0;
-    else if (sym.includes('NIFTY')) basePrice = 24000.0;
-    else if (sym.includes('BTC')) basePrice = 64000.0;
-    else basePrice = 1000.0;
-  }
-
-  for (let i = 0; i < chartState.maxCandles; i++) {
-    const change = (Math.random() - 0.49) * (basePrice * 0.003);
-    const open = basePrice;
-    const close = basePrice + change;
-    const high = Math.max(open, close) + (Math.random() * (basePrice * 0.0015));
-    const low = Math.min(open, close) - (Math.random() * (basePrice * 0.0015));
-    
-    chartState.candles.push({
-      open,
-      high,
-      low,
-      close,
-      volume: Math.random() * 200 + 50
-    });
-    basePrice = close;
-  }
-  chartState.lastPrice = basePrice;
-}
-
-// Ticks the last candle on the chart
-function updateChartLivePrice(price) {
-  if (!price || isNaN(price)) return;
-  
-  if (chartState.candles.length === 0) {
-    generateMockCandles();
-    return;
-  }
-
-  const firstCandle = chartState.candles[0];
-  // Auto-center chart candles if scale discrepancy exceeds 15% (e.g., initial load transition)
-  if (firstCandle && Math.abs(firstCandle.open - price) / firstCandle.open > 0.15) {
-    generateMockCandles();
-  }
-  
-  const lastCandle = chartState.candles[chartState.candles.length - 1];
-  
-  // Real-time update logic
-  lastCandle.close = price;
-  if (price > lastCandle.high) lastCandle.high = price;
-  if (price < lastCandle.low) lastCandle.low = price;
-  
-  chartState.lastPrice = price;
-  drawCandlestickChart();
-}
-
-// Simulate periodic new candle creation (every 15 seconds)
-setInterval(() => {
-  if (state.activeView !== 'trade' || chartState.candles.length === 0) return;
-  
-  const lastCandle = chartState.candles[chartState.candles.length - 1];
-  const open = lastCandle.close;
-  
-  chartState.candles.shift(); // remove oldest
-  chartState.candles.push({
-    open,
-    high: open,
-    low: open,
-    close: open,
-    volume: Math.random() * 200 + 50
-  });
-}, 15000);
-
-function drawCandlestickChart() {
-  if (!chartCanvas || !chartCtx || chartState.candles.length === 0) return;
-
-  const width = chartCanvas.width / window.devicePixelRatio;
-  const height = chartCanvas.height / window.devicePixelRatio;
-
-  // Clear canvas
-  chartCtx.clearRect(0, 0, width, height);
-
-  // Background grids
-  chartCtx.strokeStyle = state.theme === 'dark' ? '#22272e' : '#f1f5f9';
-  chartCtx.lineWidth = 1;
-  const gridRows = 5;
-  for (let i = 1; i < gridRows; i++) {
-    const y = (height / gridRows) * i;
-    chartCtx.beginPath();
-    chartCtx.moveTo(0, y);
-    chartCtx.lineTo(width, y);
-    chartCtx.stroke();
-  }
-
-  // Find min/max values
-  let maxVal = -Infinity;
-  let minVal = Infinity;
-  for (const c of chartState.candles) {
-    if (c.high > maxVal) maxVal = c.high;
-    if (c.low < minVal) minVal = c.low;
-  }
-
-  // Margin buffer
-  const spread = maxVal - minVal;
-  maxVal += spread * 0.05;
-  minVal -= spread * 0.05;
-
-  const priceToY = (price) => {
-    return height - ((price - minVal) / (maxVal - minVal)) * (height - 30) - 15;
-  };
-
-  // Draw candles
-  const paddingRight = 60;
-  const chartWidth = width - paddingRight;
-  const numCandles = chartState.candles.length;
-  const candleWidth = (chartWidth / numCandles) * 0.65;
-  const candleGap = (chartWidth / numCandles) * 0.35;
-  const startX = 10;
-
-  for (let i = 0; i < numCandles; i++) {
-    const c = chartState.candles[i];
-    const isGreen = c.close >= c.open;
-    const color = isGreen ? '#00c853' : '#f08f0a';
-
-    const x = startX + i * (candleWidth + candleGap);
-    const yOpen = priceToY(c.open);
-    const yClose = priceToY(c.close);
-    const yHigh = priceToY(c.high);
-    const yLow = priceToY(c.low);
-
-    // Draw wick line
-    chartCtx.strokeStyle = color;
-    chartCtx.lineWidth = 1.5;
-    chartCtx.beginPath();
-    chartCtx.moveTo(x + candleWidth / 2, yHigh);
-    chartCtx.lineTo(x + candleWidth / 2, yLow);
-    chartCtx.stroke();
-
-    // Draw body block
-    chartCtx.fillStyle = color;
-    const bodyHeight = Math.abs(yClose - yOpen) || 1; // min 1px height
-    chartCtx.fillRect(x, Math.min(yOpen, yClose), candleWidth, bodyHeight);
-  }
-
-  // Draw current live price line
-  const currentPriceY = priceToY(chartState.lastPrice);
-  chartCtx.strokeStyle = '#00b0ff';
-  chartCtx.lineWidth = 1;
-  chartCtx.setLineDash([4, 4]);
-  chartCtx.beginPath();
-  chartCtx.moveTo(0, currentPriceY);
-  chartCtx.lineTo(chartWidth, currentPriceY);
-  chartCtx.stroke();
-  chartCtx.setLineDash([]); // Reset
-
-  // Price box marker on the right
-  chartCtx.fillStyle = '#00b0ff';
-  chartCtx.fillRect(chartWidth, currentPriceY - 10, paddingRight, 20);
-  chartCtx.fillStyle = '#ffffff';
-  chartCtx.font = 'bold 10px JetBrains Mono';
-  chartCtx.textAlign = 'center';
-  chartCtx.fillText(chartState.lastPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}), chartWidth + paddingRight / 2, currentPriceY + 3);
-}
-
-// ----------------- SYNC AND POLLING LAYER -----------------
-let syncInterval = null;
-let recentNotificationIds = new Set();
-
-async function pollAPI() {
-  try {
-    // 1. Fetch Market Prices
-    const mRes = await fetch('/api/market');
-    const prices = await mRes.json();
-    const oldPrices = { ...state.marketPrices };
-
-    prices.forEach(p => {
-      state.marketPrices[p.symbol] = p;
-    });
-
-    // Dynamically populate dropdown selectors with intraday flags
-    populateSymbolDropdowns();
-
-    // 2. Fetch User Portfolio (Balance & Positions)
-    const pRes = await fetch('/api/portfolio');
-    const portfolio = await pRes.json();
-    state.user.paper_balance = portfolio.balance;
-    state.user.subscription_tier = portfolio.subscription_tier;
-    state.activePositions = portfolio.activePositions;
-    state.closedLedger = portfolio.closedLedger;
-
-    // 3. Fetch Broadcast System Notifications
-    const bRes = await fetch('/api/broadcasts');
-    const broadcasts = await bRes.json();
-    
-    // Check for new broadcasts to show as Toast (ignoring all pre-existing on boot)
-    const isFirstNotificationPoll = (recentNotificationIds.size === 0);
-    broadcasts.forEach(b => {
-      if (!recentNotificationIds.has(b.id)) {
-        recentNotificationIds.add(b.id);
-        if (!isFirstNotificationPoll) {
-          showToast(b.message, b.type);
-        }
-      }
-    });
-
-    // Update UI elements
-    updateMarketUI(oldPrices);
-    updatePortfolioUI();
-    
-    // Update live visualizer values
-    const currentSymbol = state.orderForm.symbol;
-    if (state.marketPrices[currentSymbol]) {
-      const livePrice = state.marketPrices[currentSymbol].price;
-      const liveChange = state.marketPrices[currentSymbol].change_percent;
-      
-      const currencySymbol = '₹';
-      document.getElementById('trade-live-price').innerText = `${currencySymbol}${livePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById('trade-live-change').innerText = `${liveChange >= 0 ? '+' : ''}${liveChange.toFixed(2)}%`;
-      document.getElementById('trade-live-change').className = `font-data-mono text-[11px] ${liveChange >= 0 ? 'text-secondary' : 'text-error'}`;
-      
-      // Order buttons pricing preview
-      document.getElementById('order-btn-buy-price').innerText = `Price: ${currencySymbol}${livePrice.toFixed(2)}`;
-      document.getElementById('order-btn-sell-price').innerText = `Price: ${currencySymbol}${livePrice.toFixed(2)}`;
-
-      // Update Chart canvas
-      updateChartLivePrice(livePrice);
-    }
-
-    // 4. Poll AI stats or top picks depending on active view
-    if (state.activeView === 'ai' || state.activeView === 'signals') {
-      await pollAIStats();
-    } else if (state.activeView === 'dashboard') {
-      await pollAITopPicks();
-    }
-    
-    // 5. Always update AI Copilot card in Trade view
-    if (state.activeView === 'trade') {
-      updateAICopilot();
-    }
-
-  } catch (err) {
-    console.error("API Polling connection error:", err);
-  }
-}
-
-function startSync() {
-  pollAPI();
-  syncInterval = setInterval(pollAPI, 2000);
-  startLiveClientSimulationEngine();
-}
-
-// ----------------- LIVE TICK & REAL-TIME AI AUTO-LEARNING ENGINE -----------------
-let aiAutoLearnInterval = null;
-let liveMarketTickInterval = null;
-
-function startLiveClientSimulationEngine() {
-  if (liveMarketTickInterval) return;
-
-  const defaultSymbols = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'TATAMOTORS', 'NIFTY 50', 'BANK NIFTY', 'FIN NIFTY'];
-  const basePrices = {
-    'RELIANCE': 1270.00, 'TCS': 2443.50, 'INFY': 1152.90, 'HDFCBANK': 750.40,
-    'ICICIBANK': 1438.90, 'SBIN': 1013.60, 'TATAMOTORS': 958.20, 'NIFTY 50': 24226.50,
-    'BANK NIFTY': 57239.40, 'FIN NIFTY': 28742.25
-  };
-
-  defaultSymbols.forEach(sym => {
-    if (!state.marketPrices[sym]) {
-      state.marketPrices[sym] = {
-        symbol: sym,
-        price: basePrices[sym],
-        change_percent: parseFloat((Math.random() * 2.5 - 0.8).toFixed(2)),
-        high_24h: basePrices[sym] * 1.02,
-        low_24h: basePrices[sym] * 0.98,
-        volume: Math.floor(Math.random() * 500000) + 100000
-      };
-    }
-  });
-
-  populateSymbolDropdowns();
-  updateMarketUI({});
-  updateOrderEstimates();
-
-  // 1. REAL-TIME MARKET TICK LOOP (Every 1.5 Seconds)
-  liveMarketTickInterval = setInterval(() => {
-    const oldPrices = { ...state.marketPrices };
-
-    defaultSymbols.forEach(sym => {
-      if (state.marketPrices[sym]) {
-        const deltaPct = (Math.random() * 0.0033 - 0.0015);
-        const oldP = state.marketPrices[sym].price;
-        const newP = parseFloat((oldP * (1 + deltaPct)).toFixed(2));
-        
-        state.marketPrices[sym].price = newP;
-        state.marketPrices[sym].change_percent += (deltaPct * 100);
-      }
-    });
-
-    state.activePositions.forEach(pos => {
-      const priceData = state.marketPrices[pos.symbol];
-      if (priceData) {
-        pos.current_price = priceData.price;
-        const diff = pos.type === 'BUY' 
-          ? (pos.current_price - pos.entry_price)
-          : (pos.entry_price - pos.current_price);
-        pos.unrealized_pnl = parseFloat((diff * pos.size).toFixed(2));
-      }
-    });
-
-    updateMarketUI(oldPrices);
-    renderActivePositionsTable();
-    updateOrderEstimates();
-
-    const selSym = state.orderForm.symbol || 'RELIANCE';
-    if (state.marketPrices[selSym]) {
-      const p = state.marketPrices[selSym];
-      const livePriceEl = document.getElementById('trade-live-price');
-      if (livePriceEl) livePriceEl.innerText = `₹${p.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      const liveChangeEl = document.getElementById('trade-live-change');
-      if (liveChangeEl) {
-        liveChangeEl.innerText = `${p.change_percent >= 0 ? '+' : ''}${p.change_percent.toFixed(2)}%`;
-        liveChangeEl.className = `font-data-mono text-[11px] ${p.change_percent >= 0 ? 'text-secondary' : 'text-error'}`;
-      }
-    }
-  }, 1500);
-
-  // 2. REAL-TIME AI REINFORCEMENT AUTO-LEARNING LOOP (Every 2 Seconds)
-  aiAutoLearnInterval = setInterval(() => {
-    if (!state.aiState) {
-      state.aiState = {
-        statesLearned: 48,
-        accuracy: 76.4,
-        totalPredictions: 124,
-        netReward: 18.5,
-        qtable: [
-          { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 1, q_value: 1.85 },
-          { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 0, q_value: 0.12 },
-          { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 2, q_value: -1.20 },
-          { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 1, q_value: 1.62 },
-          { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 0, q_value: 0.05 },
-          { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 2, q_value: -0.95 },
-          { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 2, q_value: 1.45 },
-          { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 0, q_value: -0.20 },
-          { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 1, q_value: -1.15 },
-          { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 1, q_value: 1.78 },
-          { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 0, q_value: 0.10 },
-          { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 2, q_value: -1.40 }
-        ]
-      };
-    }
-
-    // Increment metrics live every 2 seconds!
-    state.aiState.statesLearned += Math.floor(Math.random() * 2) + 1;
-    state.aiState.totalPredictions += Math.floor(Math.random() * 3) + 1;
-    const rewardDelta = (Math.random() > 0.35 ? 0.4 : -0.2);
-    state.aiState.netReward = parseFloat((state.aiState.netReward + rewardDelta).toFixed(1));
-    state.aiState.accuracy = parseFloat(Math.min(94.5, state.aiState.accuracy + (Math.random() * 0.15 - 0.04)).toFixed(1));
-
-    // Shift Q-table weights dynamically
-    state.aiState.qtable.forEach(r => {
-      r.q_value = parseFloat((r.q_value + (Math.random() * 0.12 - 0.05)).toFixed(2));
-    });
-
-    const statesEl = document.getElementById('ai-metrics-states');
-    if (statesEl) {
-      statesEl.innerText = state.aiState.statesLearned;
-    }
-    
-    const accEl = document.getElementById('ai-metrics-accuracy');
-    if (accEl) accEl.innerText = `${state.aiState.accuracy}%`;
-    
-    const predEl = document.getElementById('ai-metrics-predictions');
-    if (predEl) predEl.innerText = state.aiState.totalPredictions;
-    
-    const rewardEl = document.getElementById('ai-metrics-reward');
-    if (rewardEl) {
-      rewardEl.innerText = state.aiState.netReward >= 0 ? `+${state.aiState.netReward}` : state.aiState.netReward;
-      rewardEl.className = `text-xl font-extrabold font-data-mono mt-1 ${state.aiState.netReward >= 0 ? 'text-secondary' : 'text-error'}`;
-    }
-
-    if (state.activeView === 'ai') {
-      drawQTableHeatmap(state.aiState.qtable);
-    }
-  }, 2000);
-}
-
-// ----------------- UI UPDATES AND RENDERERS -----------------
-
-let dropdownsPopulated = false;
+// ----------------- MARKET UI & LIVE TICKER -----------------
 function populateSymbolDropdowns() {
-  if (dropdownsPopulated) return;
-  
   const tradeSelect = document.getElementById('trade-symbol-selector');
   const adminPriceSelect = document.getElementById('admin-override-symbol');
   const adminSigSelect = document.getElementById('admin-sig-symbol');
-  
   const symbols = Object.keys(state.marketPrices).sort();
-  if (symbols.length === 0) return;
-  
-  const createOptions = (selectEl) => {
+
+  const populate = (selectEl) => {
     if (!selectEl) return;
-    const prevVal = selectEl.value;
+    const currentVal = selectEl.value;
     selectEl.innerHTML = '';
     symbols.forEach(sym => {
-      const isIndex = ['NIFTY 50', 'BANK NIFTY', 'FIN NIFTY'].includes(sym);
-      const suffix = isIndex ? ' (Index)' : ' (Intraday MIS 5x)';
-      
       const opt = document.createElement('option');
       opt.value = sym;
-      opt.innerText = sym + suffix;
+      opt.innerText = sym + (['NIFTY 50', 'BANK NIFTY', 'FIN NIFTY'].includes(sym) ? ' (Index)' : ' (Intraday 5x)');
       selectEl.appendChild(opt);
     });
-    if (prevVal && symbols.includes(prevVal)) {
-      selectEl.value = prevVal;
-    }
+    if (currentVal && symbols.includes(currentVal)) selectEl.value = currentVal;
   };
 
-  createOptions(tradeSelect);
-  createOptions(adminPriceSelect);
-  createOptions(adminSigSelect);
-  
-  dropdownsPopulated = true;
+  populate(tradeSelect);
+  populate(adminPriceSelect);
+  populate(adminSigSelect);
 }
 
-// Update pricing and ticker feeds
-function updateMarketUI(oldPrices) {
-  // Update scrolling ticker
+function updateMarketUI() {
+  // Update Ticker
   const ticker = document.getElementById('scrolling-ticker');
   if (ticker) {
-    let tickerHtml = '';
-    const symbols = Object.keys(state.marketPrices);
-    // Double listing to support loop scrolling
-    const list = [...symbols, ...symbols];
-    list.forEach(symbol => {
-      const data = state.marketPrices[symbol];
+    const list = Object.values(state.marketPrices);
+    const doubled = [...list, ...list];
+    ticker.innerHTML = doubled.map(data => {
       const isGreen = data.change_percent >= 0;
-      const glowClass = isGreen ? 'text-secondary' : 'text-error';
-      const currencySymbol = '₹';
-      tickerHtml += `
+      return `
         <span class="font-data-mono text-xs flex items-center gap-2">
-          <span class="text-on-surface-variant font-bold">${symbol}</span>
-          <span class="${glowClass} font-semibold">${currencySymbol}${data.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+          <span class="text-on-surface-variant font-bold">${data.symbol}</span>
+          <span class="${isGreen ? 'text-secondary' : 'text-error'} font-semibold">₹${data.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
           <span class="${isGreen ? 'text-secondary' : 'text-error'} text-[10px]">${isGreen ? '+' : ''}${data.change_percent.toFixed(2)}%</span>
         </span>
       `;
-    });
-    ticker.innerHTML = tickerHtml;
+    }).join('');
   }
 
-  // Update Top Gainers & Losers on Dashboard
+  // Update Portfolio Balance Card
+  const formattedBalance = `₹${state.user.paper_balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  const dashBal = document.getElementById('dash-paper-balance');
+  if (dashBal) dashBal.innerText = formattedBalance;
+  const tradeBal = document.getElementById('trade-paper-balance');
+  if (tradeBal) tradeBal.innerText = formattedBalance;
+
+  // Update Top Gainers & Losers
   const gainersContainer = document.getElementById('dash-top-gainers');
   const losersContainer = document.getElementById('dash-top-losers');
   if (gainersContainer && losersContainer) {
     const list = Object.values(state.marketPrices);
-    
-    // Sort for Gainers (highest change first)
     const sortedGainers = [...list].sort((a, b) => b.change_percent - a.change_percent).slice(0, 4);
-    
-    // Sort for Losers (lowest change first)
     const sortedLosers = [...list].sort((a, b) => a.change_percent - b.change_percent).slice(0, 4);
-    
-    const currencySymbol = '₹';
 
     gainersContainer.innerHTML = sortedGainers.map(item => `
       <div class="flex justify-between items-center bg-secondary/5 border border-secondary/10 px-2 py-1 rounded-lg">
         <span class="text-on-surface font-semibold text-[10px]">${item.symbol}</span>
         <div class="text-right">
-          <div class="text-on-surface text-[9px] font-bold">${currencySymbol}${item.price.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
+          <div class="text-on-surface text-[9px] font-bold">₹${item.price.toFixed(1)}</div>
           <div class="text-secondary text-[8px] font-extrabold">+${item.change_percent.toFixed(2)}%</div>
         </div>
       </div>
@@ -924,566 +313,123 @@ function updateMarketUI(oldPrices) {
       <div class="flex justify-between items-center bg-error/5 border border-error/10 px-2 py-1 rounded-lg">
         <span class="text-on-surface font-semibold text-[10px]">${item.symbol}</span>
         <div class="text-right">
-          <div class="text-on-surface text-[9px] font-bold">${currencySymbol}${item.price.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
+          <div class="text-on-surface text-[9px] font-bold">₹${item.price.toFixed(1)}</div>
           <div class="text-error text-[8px] font-extrabold">${item.change_percent.toFixed(2)}%</div>
         </div>
       </div>
     `).join('');
   }
 
-  // Update Ticker Selector on Order Form if needed
-  updateOrderEstimates();
-}
-
-// Portfolio & Ledger lists renderer
-function updatePortfolioUI() {
-  // Balance displays
-  const formattedBalance = `₹${state.user.paper_balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-  document.getElementById('dash-paper-balance').innerText = formattedBalance;
-  document.getElementById('trade-paper-balance').innerText = formattedBalance;
-
-  // Header tier name
-  document.getElementById('header-tier-name').innerText = state.user.subscription_tier;
-  const freeBtn = document.getElementById('subs-free-btn');
-  if (freeBtn) {
-    freeBtn.innerText = state.user.subscription_tier === 'Free' ? 'Current Plan' : 'Standard Free';
-    freeBtn.disabled = state.user.subscription_tier === 'Free';
-  }
-  const proBtn = document.getElementById('subs-pro-btn');
-  if (proBtn) {
-    proBtn.innerText = state.user.subscription_tier === 'Pro' ? 'Current Plan' : 'Upgrade to Pro';
-    proBtn.disabled = state.user.subscription_tier === 'Pro';
-  }
-  const primeBtn = document.getElementById('subs-prime-btn');
-  if (primeBtn) {
-    primeBtn.innerText = state.user.subscription_tier === 'Prime' ? 'Current Plan' : 'Upgrade to Prime';
-    primeBtn.disabled = state.user.subscription_tier === 'Prime';
-  }
-
-  // Today's total stats
+  // Update Active Positions P&L
   let totalPnl = 0;
-  state.activePositions.forEach(p => {
-    totalPnl += (p.unrealized_pnl !== undefined ? p.unrealized_pnl : (p.pnl || 0));
+  state.activePositions.forEach(pos => {
+    const priceData = state.marketPrices[pos.symbol];
+    if (priceData) {
+      pos.current_price = priceData.price;
+      const diff = pos.type === 'BUY' ? (pos.current_price - pos.entry_price) : (pos.entry_price - pos.current_price);
+      pos.unrealized_pnl = parseFloat((diff * pos.size).toFixed(2));
+    }
+    totalPnl += (pos.unrealized_pnl || 0);
   });
+
   const pnlEl = document.getElementById('portfolio-today-pnl');
   if (pnlEl) {
     pnlEl.innerText = `${totalPnl >= 0 ? '+' : ''}₹${totalPnl.toFixed(2)} active P&L`;
     pnlEl.className = `font-semibold ${totalPnl >= 0 ? 'text-secondary' : 'text-error'}`;
   }
-  
-  const totalPosEl = document.getElementById('portfolio-total-positions');
-  if (totalPosEl) totalPosEl.innerText = `${state.activePositions.length} Active Trades`;
-  
+
   const countEl = document.getElementById('active-positions-count');
   if (countEl) countEl.innerText = `${state.activePositions.length} Active`;
-
-  // Active Positions Table
-  const tbody = document.getElementById('active-positions-tbody');
-  if (tbody) {
-    if (state.activePositions.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="p-6 text-center text-on-surface-variant font-body-base text-xs">No active trading positions.</td>
-        </tr>
-      `;
-    } else {
-      tbody.innerHTML = state.activePositions.map(pos => {
-        const pnlVal = pos.unrealized_pnl !== undefined ? pos.unrealized_pnl : (pos.pnl || 0);
-        const isGreen = pnlVal >= 0;
-        const colorClass = isGreen ? 'text-secondary' : 'text-error';
-        const typeClass = pos.type === 'BUY' ? 'bg-secondary/15 text-secondary border-secondary/30' : 'bg-tertiary-container/15 text-tertiary-container border-tertiary-container/30';
-        const currencySymbol = '₹';
-        const exitActionLabel = pos.status === 'PENDING' ? 'Cancel' : 'Close';
-
-        return `
-          <tr class="border-b border-outline-variant/10 hover:bg-surface-variant/20 transition-colors">
-            <td class="p-4 font-semibold text-on-surface">${pos.symbol}</td>
-            <td class="p-4">
-              <span class="px-2 py-0.5 rounded text-[9px] font-bold border ${typeClass}">${pos.type === 'BUY' ? 'LONG' : 'SHORT'}</span>
-            </td>
-            <td class="p-4 font-semibold">${pos.size}</td>
-            <td class="p-4 font-data-mono text-xs">${currencySymbol}${pos.entry_price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-            <td class="p-4 text-right font-data-mono font-bold ${colorClass}">
-              ${pos.status === 'PENDING' ? '<span class="text-on-surface-variant italic text-xs">Pending Exec</span>' : (isGreen ? '+' : '') + currencySymbol + pnlVal.toFixed(2)}
-            </td>
-            <td class="p-4 text-center">
-              <button onclick="closeTradePosition(${pos.id})" class="text-error text-xs font-bold uppercase hover:bg-error-container/20 px-2.5 py-1 rounded transition-colors border border-error/20">
-                ${exitActionLabel}
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-  }
-
-  // Trade History Ledger Table
-  const ledgerTbody = document.getElementById('trade-ledger-tbody');
-  if (ledgerTbody) {
-    if (state.closedLedger.length === 0) {
-      ledgerTbody.innerHTML = `
-        <tr>
-          <td colspan="3" class="p-4 text-center text-on-surface-variant text-[11px]">No trade logs in ledger.</td>
-        </tr>
-      `;
-    } else {
-      ledgerTbody.innerHTML = state.closedLedger.map(pos => {
-        const isGreen = pos.pnl >= 0;
-        const colorClass = isGreen ? 'text-secondary' : 'text-error';
-        const currencySymbol = '₹';
-
-        return `
-          <tr class="border-b border-outline-variant/5 hover:bg-surface-variant/10">
-            <td class="p-3 font-semibold">${pos.symbol}</td>
-            <td class="p-3 text-[10px] uppercase font-bold text-on-surface-variant">${pos.type === 'BUY' ? 'LONG' : 'SHORT'}</td>
-            <td class="p-3 text-right font-bold ${colorClass}">${isGreen ? '+' : ''}${currencySymbol}${pos.pnl.toFixed(2)}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-  }
 }
 
-// ----------------- TECHNICAL SIGNALS ENGINE -----------------
-async function loadSignals() {
-  try {
-    const res = await fetch('/api/signals');
-    const signals = await res.json();
-    state.signals = signals;
-    
-    renderSignalsGrid();
-    renderDashboardTopSignals();
-  } catch (err) {
-    console.error("Error loading signals:", err);
-  }
-}
-
-let activeSignalCategory = 'ALL';
-function setupSignalFilters() {
-  const searchInput = document.getElementById('signal-search-input');
-  if (searchInput) {
-    searchInput.addEventListener('input', renderSignalsGrid);
-  }
-
-  document.querySelectorAll('.signal-filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      // Highlight active button
-      document.querySelectorAll('.signal-filter-btn').forEach(b => {
-        b.className = "signal-filter-btn px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-all text-xs font-bold uppercase tracking-wider whitespace-nowrap active:scale-95";
-      });
-      btn.className = "signal-filter-btn px-4 py-2 rounded-full bg-primary text-white text-xs font-bold uppercase tracking-wider whitespace-nowrap active:scale-95 transition-all";
-      
-      activeSignalCategory = btn.getAttribute('data-filter-cat');
-      renderSignalsGrid();
-    });
-  });
-}
-
-function renderSignalsGrid() {
-  const container = document.getElementById('signals-grid-container');
-  if (!container) return;
-
-  const searchInput = document.getElementById('signal-search-input');
-  const searchQuery = searchInput && searchInput.value ? searchInput.value.toLowerCase() : '';
-  const signalsList = state.signals || [];
-
-  // 1. Build AI active trade cards html
-  const activeAiTrades = (state.recentAiTrades || []).filter(t => t.status === 'ACTIVE');
-  
-  const filteredAiTrades = activeAiTrades.filter(t => {
-    const matchesSearch = t.symbol ? t.symbol.toLowerCase().includes(searchQuery) : true;
-    const matchesCat = activeSignalCategory === 'ALL' || activeSignalCategory === 'Trend' || activeSignalCategory === 'Momentum'; 
-    return matchesCat && matchesSearch;
-  });
-
-  const currencySymbol = '₹';
-  const aiCardsHtml = filteredAiTrades.map(trade => {
-    const isBuy = trade.predicted_action === 1;
-    const typeLabel = isBuy ? 'BUY' : 'SHORT';
-    const typeClass = isBuy ? 'bg-secondary text-white' : 'bg-error text-white';
-    const indicatorBorder = isBuy ? 'border-secondary' : 'border-error';
-    const indicatorShadow = isBuy ? 'shadow-secondary/20' : 'shadow-error/20';
-
-    let pnlHtml = '<span class="text-on-surface-variant italic">Calculating...</span>';
-    const currentPriceData = state.marketPrices[trade.symbol];
-    if (currentPriceData) {
-      const currentPrice = currentPriceData.price;
-      const priceDiff = ((currentPrice - trade.entry_price) / trade.entry_price) * 100;
-      let pnl = 0.0;
-      if (trade.predicted_action === 1) { // BUY
-        pnl = priceDiff * 1000.00;
-      } else if (trade.predicted_action === 2) { // SHORT
-        pnl = -priceDiff * 1000.00;
-      }
-      const isProfit = pnl >= 0;
-      pnlHtml = `<span class="${isProfit ? 'text-secondary' : 'text-error'} font-bold">${isProfit ? '+' : ''}${currencySymbol}${pnl.toFixed(2)}</span>`;
-    }
-
-    return `
-      <div class="glass-panel p-5 rounded-2xl border-l-4 ${indicatorBorder} border-t-2 border-t-primary/20 bg-gradient-to-br from-primary/5 to-transparent hover:shadow-lg hover:${indicatorShadow} transition-all duration-200 flex flex-col gap-3 relative overflow-hidden ring-1 ring-primary/25">
-        <div class="absolute top-0 right-0 bg-primary/10 text-primary text-[8px] font-extrabold uppercase px-2.5 py-0.5 rounded-bl">
-          AI Auto Trade
-        </div>
-
-        <div class="flex justify-between items-start mt-1">
-          <div>
-            <h3 class="font-headline-md text-base text-on-surface font-bold flex items-center gap-1.5">
-              <i data-lucide="brain-circuit" class="w-4 h-4 text-primary animate-pulse"></i>
-              ${trade.symbol}
-            </h3>
-            <span class="text-[9px] text-primary uppercase tracking-widest font-extrabold">Active AI Prediction</span>
-          </div>
-          <div class="flex flex-col items-end">
-            <span class="${typeClass} font-bold text-[9px] px-2 py-0.5 rounded shadow-sm">${typeLabel}</span>
-            <span class="text-[9px] text-on-surface-variant mt-1 font-semibold">${formatTimestamp(trade.timestamp)}</span>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4 py-2 border-y border-outline-variant/15 text-xs">
-          <div>
-            <p class="text-[9px] text-on-surface-variant mb-0.5 font-bold uppercase tracking-wider">AI ENTRY PRICE</p>
-            <p class="font-data-mono font-bold text-primary">${currencySymbol}${(trade.entry_price || 0).toFixed(2)}</p>
-          </div>
-          <div class="text-right">
-            <p class="text-[9px] text-on-surface-variant mb-0.5 font-bold uppercase tracking-wider">LIVE TICKING PNL</p>
-            <p class="font-data-mono font-bold">${pnlHtml}</p>
-          </div>
-        </div>
-
-        <div class="flex justify-between items-center mt-2 pt-1">
-          <span class="text-[10px] text-on-surface-variant font-bold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
-            AI IS TRACKING LIVE
-          </span>
-          <button onclick="copyAITradeToPanel('${trade.symbol}', '${typeLabel}', ${trade.entry_price})" class="bg-primary hover:brightness-110 text-white font-extrabold text-[10px] px-4 py-2 rounded-lg uppercase tracking-wider active:scale-95 transition-all shadow-md shadow-primary/10">
-            Copy AI Trade
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // 2. Filter rules-based signals list
-  const filtered = signalsList.filter(sig => {
-    if (!sig) return false;
-    const matchesCat = activeSignalCategory === 'ALL' || sig.category === activeSignalCategory;
-    const matchesSearch = !searchQuery || (sig.symbol && sig.symbol.toLowerCase().includes(searchQuery)) || (sig.strategy_name && sig.strategy_name.toLowerCase().includes(searchQuery));
-    return matchesCat && matchesSearch;
-  });
-
-  if (filtered.length === 0 && filteredAiTrades.length === 0) {
-    container.innerHTML = `
-      <div class="col-span-full py-12 text-center text-on-surface-variant">
-        <i data-lucide="inbox" class="w-10 h-10 mx-auto text-on-surface-variant/40 mb-3"></i>
-        <p class="font-body-base text-sm">No active signals match current criteria.</p>
-      </div>
-    `;
-    safeCreateIcons();
-    return;
-  }
-
-  const formatPrice = (val) => (val !== undefined && val !== null ? val.toLocaleString() : '--');
-
-  const signalsHtml = filtered.map(sig => {
-    const isBuy = sig.type === 'BUY';
-    const typeClass = isBuy ? 'bg-secondary text-white' : 'bg-error text-white';
-    const indicatorBorder = isBuy ? 'border-secondary' : 'border-error';
-    const indicatorShadow = isBuy ? 'shadow-secondary/20' : 'shadow-error/20';
-
-    if (sig.locked) {
-      const requiredPlan = sig.category === 'SMC' ? 'Prime' : 'Pro';
-      return `
-        <div class="glass-panel p-5 rounded-2xl border border-outline-variant/30 flex flex-col gap-3 relative overflow-hidden h-72">
-          <div class="absolute inset-0 bg-background/50 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 text-center">
-            <div class="p-3 bg-primary/10 rounded-full text-primary mb-3 shadow-lg shadow-primary/20">
-              <i data-lucide="lock" class="w-6 h-6"></i>
-            </div>
-            <h4 class="text-sm font-bold text-on-surface uppercase tracking-wider">${requiredPlan} Feature</h4>
-            <p class="text-xs text-on-surface-variant mt-1.5 mb-4 max-w-[200px]">Unlock SMC order blocks & institutional signals.</p>
-            <button data-view-target="subscription" class="px-5 py-2.5 bg-primary hover:brightness-110 text-white rounded-xl text-xs font-bold uppercase transition-all shadow-md shadow-primary/15 active:scale-95">
-              Upgrade Now
-            </button>
-          </div>
-          
-          <div class="flex justify-between items-start opacity-30 select-none">
-            <div>
-              <h3 class="font-headline-md text-base text-on-surface font-bold">${sig.symbol}</h3>
-              <span class="text-[9px] text-on-surface-variant uppercase tracking-widest font-semibold">${sig.category} • ${sig.strategy_name}</span>
-            </div>
-            <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase ${typeClass}">${sig.type}</span>
-          </div>
-          <div class="h-[1px] bg-outline-variant/10 w-full opacity-30 select-none"></div>
-          <div class="flex-grow opacity-30 select-none flex flex-col justify-center">
-            <p class="text-xs text-on-surface-variant font-semibold">Technical details are currently hidden.</p>
-          </div>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="glass-panel p-5 rounded-2xl border-l-4 ${indicatorBorder} hover:shadow-lg hover:${indicatorShadow} transition-all duration-200 cursor-pointer flex flex-col gap-3 relative overflow-hidden">
-        <div class="flex justify-between items-start">
-          <div>
-            <h3 class="font-headline-md text-base text-on-surface font-bold">${sig.symbol}</h3>
-            <span class="text-[9px] text-on-surface-variant uppercase tracking-widest font-bold">${sig.category} • ${sig.strategy_name}</span>
-          </div>
-          <div class="flex flex-col items-end">
-            <span class="${typeClass} font-bold text-[9px] px-2 py-0.5 rounded shadow-sm">${sig.type}</span>
-            <span class="text-[9px] text-on-surface-variant mt-1 font-semibold">${formatTimestamp(sig.timestamp)}</span>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4 py-2 border-y border-outline-variant/15 text-xs">
-          <div>
-            <p class="text-[9px] text-on-surface-variant mb-0.5 font-bold uppercase tracking-wider">ENTRY PRICE</p>
-            <p class="font-data-mono font-bold text-primary">${currencySymbol}${formatPrice(sig.entry_price)}</p>
-          </div>
-          <div class="text-right">
-            <p class="text-[9px] text-on-surface-variant mb-0.5 font-bold uppercase tracking-wider">STOP LOSS</p>
-            <p class="font-data-mono font-bold text-error">${currencySymbol}${formatPrice(sig.sl)}</p>
-          </div>
-        </div>
-        
-        <div class="flex flex-col gap-1.5">
-          <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider">Take Profit Targets</p>
-          <div class="flex items-center gap-2">
-            <div class="flex-grow bg-surface-container/60 rounded p-1.5 border border-outline-variant/30 text-center">
-              <span class="text-[8px] text-on-surface-variant block font-bold">T1</span>
-              <span class="font-data-mono text-[10px] text-secondary font-bold">${currencySymbol}${formatPrice(sig.t1)}</span>
-            </div>
-            <div class="flex-grow bg-surface-container/60 rounded p-1.5 border border-outline-variant/30 text-center">
-              <span class="text-[8px] text-on-surface-variant block font-bold">T2</span>
-              <span class="font-data-mono text-[10px] text-on-surface-variant font-bold">${currencySymbol}${formatPrice(sig.t2)}</span>
-            </div>
-            <div class="flex-grow bg-surface-container/60 rounded p-1.5 border border-outline-variant/30 text-center">
-              <span class="text-[8px] text-on-surface-variant block font-bold">T3</span>
-              <span class="font-data-mono text-[10px] text-on-surface-variant font-bold">${currencySymbol}${formatPrice(sig.t3)}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="flex justify-between items-center mt-2 pt-1">
-          <div class="flex items-center gap-1.5 text-[10px]">
-            <span class="text-on-surface-variant font-bold uppercase">R:R RATIO:</span>
-            <span class="font-bold text-on-surface font-data-mono">${sig.rr_ratio || '1:3.0'}</span>
-          </div>
-          <button onclick="executeSignalPreset(${sig.id})" class="bg-primary hover:brightness-110 text-white font-extrabold text-[10px] px-4 py-2 rounded-lg uppercase tracking-wider active:scale-95 transition-all shadow-md shadow-primary/10">
-            Execute
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  container.innerHTML = aiCardsHtml + signalsHtml;
-  safeCreateIcons();
-  
-  // Attach view switcher buttons event from dynamically added cards
-  document.querySelectorAll('[data-view-target="subscription"]').forEach(btn => {
-    btn.addEventListener('click', () => switchView('subscription'));
-  });
-}
-
-function renderDashboardTopSignals() {
-  const container = document.getElementById('dash-top-signals');
-  if (!container) return;
-
-  // Take first 3 unlocked or basic signals
-  const displaySignals = state.signals.filter(s => !s.locked).slice(0, 3);
-  if (displaySignals.length === 0) {
-    container.innerHTML = `
-      <div class="col-span-full p-6 text-center text-on-surface-variant glass-panel rounded-xl">
-        No active basic signals.
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = displaySignals.map(sig => {
-    const isBuy = sig.type === 'BUY';
-    const typeClass = isBuy ? 'bg-secondary text-white' : 'bg-error text-white';
-    const currencySymbol = '₹';
-    const pct = isBuy ? 65 : 40;
-    const progressClass = isBuy ? 'bg-secondary' : 'bg-error';
-
-    return `
-      <div onclick="executeSignalPreset(${sig.id})" class="glass-panel rounded-xl p-4 flex flex-col hover:border-primary/50 transition-colors cursor-pointer relative overflow-hidden group shadow-sm">
-        <div class="flex justify-between items-start mb-3">
-          <span class="${typeClass} text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shadow-sm">${sig.type}</span>
-          <span class="font-label-xs text-on-surface-variant text-[9px] font-semibold">${sig.category}</span>
-        </div>
-        <h5 class="font-headline-md text-on-surface font-bold text-sm mb-1">${sig.symbol}</h5>
-        <p class="font-body-base text-on-surface-variant text-[11px] mb-4 truncate">${sig.strategy_name}</p>
-        <div class="mt-auto">
-          <div class="flex justify-between text-[10px] mb-1">
-            <span class="text-on-surface-variant">Entry / Target</span>
-            <span class="font-data-mono font-bold ${isBuy ? 'text-secondary' : 'text-error'}">${currencySymbol}${sig.entry_price.toLocaleString()} / ${currencySymbol}${sig.t1.toLocaleString()}</span>
-          </div>
-          <div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
-            <div class="${progressClass} w-[${pct}%] h-full"></div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function executeSignalPreset(signalId) {
-  const sig = state.signals.find(s => s.id === signalId);
-  if (!sig) return;
-
-  // Set selector and focus
-  const selector = document.getElementById('trade-symbol-selector');
-  if (selector) {
-    selector.value = sig.symbol;
-    // trigger change
-    selector.dispatchEvent(new Event('change'));
-  }
-
-  // Pre-fill Order Form state
-  state.orderForm.type = sig.type === 'BUY' ? 'BUY' : 'SHORT';
-  state.orderForm.orderType = 'LIMIT';
-  
-  // Set values
-  document.getElementById('order-limit-price').value = sig.entry_price;
-  
-  // Toggle Limit UI
-  document.getElementById('ordertype-limit-btn').click();
-  
-  // Update buttons styling
-  updateOrderFormButtons();
-  updateOrderEstimates();
-
-  // Redirect view to trade tab
-  switchView('trade');
-  
-  // Highlight/focus Quantity
-  const qtyInput = document.getElementById('order-qty');
-  if (qtyInput) {
-    qtyInput.focus();
-    qtyInput.select();
-  }
-
-  showToast(`Preset loaded for ${sig.symbol} Limit ${sig.type}!`, "info");
-}
-
-// ----------------- TRADING PANEL & PLACING ORDERS -----------------
+// ----------------- PAPER TRADING & ORDER EXECUTION -----------------
 function setupTradingPanel() {
   const symbolSelector = document.getElementById('trade-symbol-selector');
   if (symbolSelector) {
     symbolSelector.addEventListener('change', (e) => {
       const selected = e.target.value;
       state.orderForm.symbol = selected;
-      document.getElementById('trade-symbol-name').innerText = selected;
-      document.getElementById('order-symbol-display').innerText = selected;
-      
-      const unit = 'Shares';
-      document.getElementById('order-asset-unit').innerText = unit;
+      const symName = document.getElementById('trade-symbol-name');
+      if (symName) symName.innerText = selected;
+      const displaySym = document.getElementById('order-symbol-display');
+      if (displaySym) displaySym.innerText = selected;
 
-      // Update Max buying power
       updateMaxBuyingPower();
-      // Generate new mock chart data for this asset
-      generateMockCandles();
-      // Re-initialize tradingview widget
-      initTradingViewWidget();
-      // Update price visual
       updateOrderEstimates();
-      // Update AI copilot card recommendation
-      updateAICopilot();
+      initTradingViewWidget();
     });
   }
 
-  // Order Type triggers (Market vs Limit)
-  document.getElementById('ordertype-market-btn').addEventListener('click', () => {
+  document.getElementById('ordertype-market-btn')?.addEventListener('click', () => {
     state.orderForm.orderType = 'MARKET';
     document.getElementById('ordertype-market-btn').className = "flex-1 py-1.5 rounded-md bg-primary text-white font-label-xs uppercase text-[10px] font-bold active:scale-95 transition-all";
     document.getElementById('ordertype-limit-btn').className = "flex-1 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface font-label-xs uppercase text-[10px] font-bold hover:bg-surface-variant/30 active:scale-95 transition-all";
-    document.getElementById('limit-price-input-container').classList.add('hidden');
+    document.getElementById('limit-price-input-container')?.classList.add('hidden');
     updateOrderEstimates();
   });
 
-  document.getElementById('ordertype-limit-btn').addEventListener('click', () => {
+  document.getElementById('ordertype-limit-btn')?.addEventListener('click', () => {
     state.orderForm.orderType = 'LIMIT';
     document.getElementById('ordertype-limit-btn').className = "flex-1 py-1.5 rounded-md bg-primary text-white font-label-xs uppercase text-[10px] font-bold active:scale-95 transition-all";
     document.getElementById('ordertype-market-btn').className = "flex-1 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface font-label-xs uppercase text-[10px] font-bold hover:bg-surface-variant/30 active:scale-95 transition-all";
-    document.getElementById('limit-price-input-container').classList.remove('hidden');
-    
-    // Fill current live price as base limit target
-    const currentSymbol = state.orderForm.symbol;
-    if (state.marketPrices[currentSymbol] && !document.getElementById('order-limit-price').value) {
-      document.getElementById('order-limit-price').value = state.marketPrices[currentSymbol].price.toFixed(2);
+    document.getElementById('limit-price-input-container')?.classList.remove('hidden');
+
+    const sym = state.orderForm.symbol || 'RELIANCE';
+    const limitInput = document.getElementById('order-limit-price');
+    if (limitInput && state.marketPrices[sym]) {
+      limitInput.value = state.marketPrices[sym].price.toFixed(2);
     }
     updateOrderEstimates();
   });
 
-  // Quantity input watchers
-  document.getElementById('order-qty').addEventListener('input', updateOrderEstimates);
+  document.getElementById('order-qty')?.addEventListener('input', updateOrderEstimates);
 
-  // Percentage shortcuts buttons
+  // Percentage shortcut buttons (25%, 50%, 75%, 100%)
   document.querySelectorAll('.qty-pct-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const pct = parseFloat(btn.getAttribute('data-pct'));
-      const currentSymbol = state.orderForm.symbol || 'RELIANCE';
-      const priceData = state.marketPrices[currentSymbol];
-      const currentPrice = priceData ? priceData.price : 1270.00;
+      const sym = state.orderForm.symbol || 'RELIANCE';
+      const priceData = state.marketPrices[sym];
+      const price = priceData ? priceData.price : 1270.00;
 
-      const maxPositionVal = (state.user.paper_balance || 100000) * 5;
-      const maxSize = maxPositionVal / currentPrice;
+      const maxVal = (state.user.paper_balance || 100000) * 5;
+      const maxSize = maxVal / price;
+      const qty = Math.max(1, Math.floor(maxSize * pct));
 
-      const size = Math.floor(maxSize * pct);
       const qtyInput = document.getElementById('order-qty');
-      if (qtyInput) qtyInput.value = size || 10;
+      if (qtyInput) qtyInput.value = qty;
       updateOrderEstimates();
     });
   });
 
-  // Execute buy/sell triggers
-  const buyBtn = document.getElementById('order-buy-btn');
-  if (buyBtn) buyBtn.addEventListener('click', () => placeOrder('BUY'));
-  
-  const sellBtn = document.getElementById('order-sell-btn');
-  if (sellBtn) sellBtn.addEventListener('click', () => placeOrder('SHORT'));
-  
-  // Set default max size & estimates
+  document.getElementById('order-buy-btn')?.addEventListener('click', () => placeOrder('BUY'));
+  document.getElementById('order-sell-btn')?.addEventListener('click', () => placeOrder('SHORT'));
+
   updateMaxBuyingPower();
   updateOrderEstimates();
-
-  // Set default buy/sell button prices preview
-  const buyPriceEl = document.getElementById('order-btn-buy-price');
-  if (buyPriceEl) buyPriceEl.innerText = `Price: ₹1270.00`;
-  const sellPriceEl = document.getElementById('order-btn-sell-price');
-  if (sellPriceEl) sellPriceEl.innerText = `Price: ₹1270.00`;
-}
-
-function updateOrderFormButtons() {
-  if (state.orderForm.orderType === 'MARKET') {
-    document.getElementById('ordertype-market-btn').click();
-  } else {
-    document.getElementById('ordertype-limit-btn').click();
-  }
 }
 
 function updateMaxBuyingPower() {
-  const currentSymbol = state.orderForm.symbol || 'RELIANCE';
-  const priceData = state.marketPrices[currentSymbol];
-  const currentPrice = priceData ? priceData.price : 1270.00;
+  const sym = state.orderForm.symbol || 'RELIANCE';
+  const priceData = state.marketPrices[sym];
+  const price = priceData ? priceData.price : 1270.00;
 
-  const maxPositionVal = (state.user.paper_balance || 100000) * 5;
-  const maxSize = maxPositionVal / currentPrice;
-  
+  const maxVal = (state.user.paper_balance || 100000) * 5;
+  const maxSize = maxVal / price;
+
   const maxEl = document.getElementById('order-max-size');
-  if (maxEl) maxEl.innerText = `Max: ${maxSize.toFixed(2)}`;
+  if (maxEl) maxEl.innerText = `Max: ${maxSize.toFixed(1)}`;
 }
 
 function updateOrderEstimates() {
-  const currentSymbol = state.orderForm.symbol || 'RELIANCE';
-  const priceData = state.marketPrices[currentSymbol];
-  const currentPrice = priceData ? priceData.price : 1270.00;
+  const sym = state.orderForm.symbol || 'RELIANCE';
+  const priceData = state.marketPrices[sym];
+  const price = priceData ? priceData.price : 1270.00;
 
   const qtyInput = document.getElementById('order-qty');
   const qty = qtyInput ? (parseFloat(qtyInput.value) || 10) : 10;
-  
-  let entryPrice = currentPrice;
+
+  let entryPrice = price;
   if (state.orderForm.orderType === 'LIMIT') {
     const limitInput = document.getElementById('order-limit-price');
     if (limitInput && !isNaN(parseFloat(limitInput.value)) && parseFloat(limitInput.value) > 0) {
@@ -1491,20 +437,19 @@ function updateOrderEstimates() {
     }
   }
 
-  const positionValue = entryPrice * qty;
-  const marginRequired = positionValue / 5; // 5x leverage
+  const posValue = entryPrice * qty;
+  const marginReq = posValue / 5;
 
-  const currencySymbol = '₹';
   const valEl = document.getElementById('order-est-value');
-  if (valEl) valEl.innerText = `${currencySymbol}${positionValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-  
+  if (valEl) valEl.innerText = `₹${posValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
   const marginEl = document.getElementById('order-est-margin');
-  if (marginEl) marginEl.innerText = `₹${marginRequired.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  if (marginEl) marginEl.innerText = `₹${marginReq.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
 
-async function placeOrder(type) {
+function placeOrder(type) {
   const symbolSelect = document.getElementById('trade-symbol-selector');
-  const symbol = (symbolSelect ? symbolSelect.value : null) || state.orderForm.symbol || 'RELIANCE';
+  const sym = (symbolSelect ? symbolSelect.value : null) || state.orderForm.symbol || 'RELIANCE';
   const orderType = state.orderForm.orderType || 'MARKET';
   const qtyInput = document.getElementById('order-qty');
   const qty = qtyInput ? (parseFloat(qtyInput.value) || 10) : 10;
@@ -1517,12 +462,12 @@ async function placeOrder(type) {
     }
   }
 
-  const priceData = state.marketPrices[symbol];
+  const priceData = state.marketPrices[sym];
   const execPrice = orderType === 'MARKET' ? (priceData ? priceData.price : limitPrice) : limitPrice;
 
   const newPos = {
     id: Date.now(),
-    symbol: symbol,
+    symbol: sym,
     type: type,
     order_type: orderType,
     size: qty,
@@ -1534,1489 +479,461 @@ async function placeOrder(type) {
 
   state.activePositions.push(newPos);
   renderActivePositionsTable();
-  showToast(`Paper Order executed for ${symbol} ${type} (${qty} shares) @ ₹${execPrice.toFixed(2)}!`, "success");
-
-  try {
-    fetch('/api/trade/place', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ symbol, type, orderType, price: limitPrice, size: qty })
-    }).catch(e => {});
-  } catch (err) {}
+  showToast(`Paper Order executed for ${sym} ${type} (${qty} shares) @ ₹${execPrice.toFixed(2)}!`, "success");
 }
 
-async function closeTradePosition(positionId) {
-  try {
-    const res = await fetch('/api/trade/close', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ positionId })
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      showToast(data.error || "Error exiting position.", "error");
-    } else {
-      showToast(data.message || "Position closed.", "success");
-      pollAPI();
-    }
-  } catch (err) {
-    console.warn("Server unavailable - closing Paper Trade in client mode:", err);
-    const index = state.activePositions.findIndex(p => p.id === positionId);
-    if (index !== -1) {
-      const pos = state.activePositions[index];
-      state.activePositions.splice(index, 1);
-      state.closedLedger.unshift(pos);
-      renderActivePositionsTable();
-      renderTradeHistoryLedger();
-      showToast(`Position closed for ${pos.symbol}!`, "success");
-    }
+function closeTradePosition(positionId) {
+  const index = state.activePositions.findIndex(p => p.id === positionId);
+  if (index !== -1) {
+    const pos = state.activePositions[index];
+    state.activePositions.splice(index, 1);
+    state.closedLedger.unshift(pos);
+    renderActivePositionsTable();
+    renderTradeHistoryLedger();
+    showToast(`Position closed for ${pos.symbol}!`, "success");
   }
 }
 
-// ----------------- TRADER JOURNAL LAYER -----------------
-function setupJournalForm() {
-  const form = document.getElementById('journal-form');
-  if (!form) return;
+function renderActivePositionsTable() {
+  const tbody = document.getElementById('active-positions-tbody');
+  if (!tbody) return;
 
-  // Emotion selectors binding
-  document.querySelectorAll('.mood-select-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.mood-select-btn').forEach(b => {
-        b.className = "mood-select-btn py-2 border border-outline-variant/40 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 hover:bg-surface-variant/30 text-on-surface-variant bg-surface-container";
-        b.querySelector('i').classList.add('hidden');
-      });
-      
-      btn.className = "mood-select-btn py-2 border-2 border-secondary rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1 bg-surface-container text-on-surface";
-      btn.querySelector('i').classList.remove('hidden');
-      
-      // Save selected emotion
-      form.dataset.selectedEmotion = btn.getAttribute('data-mood');
-    });
-  });
-
-  // Set default emotion
-  const defaultBtn = document.querySelector('.mood-select-btn[data-mood="Disciplined"]');
-  if (defaultBtn) defaultBtn.click();
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const symbol = document.getElementById('journal-symbol').value;
-    const strategy_tag = document.getElementById('journal-strategy').value;
-    const note = document.getElementById('journal-notes').value;
-    const emotion = form.dataset.selectedEmotion || 'Disciplined';
-    const reflection = document.getElementById('journal-reflection').value;
-
-    try {
-      const res = await fetch('/api/journal/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, strategy_tag, note, emotion, reflection })
-      });
-
-      if (res.ok) {
-        showToast("Journal entry logged successfully!", "success");
-        form.reset();
-        if (defaultBtn) defaultBtn.click();
-        loadJournals();
-        renderDashboardMoodStats();
-      } else {
-        showToast("Error creating journal entry.", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showToast("Connection error creating journal entry.", "error");
-    }
-  });
-}
-
-async function loadJournals() {
-  try {
-    const res = await fetch('/api/journal');
-    const logs = await res.json();
-    state.journals = logs;
-
-    renderJournalsFeed();
-  } catch (err) {
-    console.error("Error fetching journals:", err);
-  }
-}
-
-function renderJournalsFeed() {
-  const container = document.getElementById('journal-logs-feed');
-  const countLabel = document.getElementById('journal-logs-count');
-  if (!container) return;
-
-  countLabel.innerText = `${state.journals.length} Entries`;
-
-  if (state.journals.length === 0) {
-    container.innerHTML = `
-      <div class="glass-panel p-8 rounded-xl text-center text-on-surface-variant">
-        <i data-lucide="book" class="w-8 h-8 mx-auto opacity-30 mb-2"></i>
-        <p class="text-xs">Your trading journal ledger is currently empty.</p>
-      </div>
-    `;
-    safeCreateIcons();
+  if (state.activePositions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-on-surface-variant font-body-base text-xs">No active trading positions.</td></tr>`;
     return;
   }
 
-  container.innerHTML = state.journals.map(log => {
-    let moodColor = 'bg-secondary/10 text-secondary border-secondary/20';
-    if (log.emotion === 'Fearful') moodColor = 'bg-tertiary/10 text-tertiary border-tertiary/20';
-    else if (log.emotion === 'Greedy') moodColor = 'bg-error/10 text-error border-error/20';
+  tbody.innerHTML = state.activePositions.map(pos => {
+    const pnl = pos.unrealized_pnl || 0;
+    const isGreen = pnl >= 0;
+    const colorClass = isGreen ? 'text-secondary' : 'text-error';
+    const typeClass = pos.type === 'BUY' ? 'bg-secondary/15 text-secondary border-secondary/30' : 'bg-tertiary-container/15 text-tertiary-container border-tertiary-container/30';
 
     return `
-      <div class="glass-panel p-5 rounded-2xl border border-outline-variant/30 flex flex-col gap-2.5 shadow-sm">
+      <tr class="border-b border-outline-variant/10 hover:bg-surface-variant/20 transition-colors font-data-mono text-xs">
+        <td class="p-4 font-semibold text-on-surface">${pos.symbol}</td>
+        <td class="p-4"><span class="px-2 py-0.5 rounded text-[9px] font-bold border ${typeClass}">${pos.type === 'BUY' ? 'LONG' : 'SHORT'}</span></td>
+        <td class="p-4 font-semibold">${pos.size}</td>
+        <td class="p-4">₹${pos.entry_price.toFixed(2)}</td>
+        <td class="p-4 text-right font-bold ${colorClass}">${isGreen ? '+' : ''}₹${pnl.toFixed(2)}</td>
+        <td class="p-4 text-center">
+          <button onclick="closeTradePosition(${pos.id})" class="text-error text-xs font-bold uppercase hover:bg-error-container/20 px-2.5 py-1 rounded transition-colors border border-error/20">Close</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderTradeHistoryLedger() {
+  const tbody = document.getElementById('trade-ledger-tbody');
+  if (!tbody) return;
+
+  if (state.closedLedger.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-on-surface-variant text-xs">No trade history yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = state.closedLedger.map(pos => {
+    const pnl = pos.unrealized_pnl || 0;
+    const isGreen = pnl >= 0;
+    return `
+      <tr class="border-b border-outline-variant/10 hover:bg-surface-variant/10 transition-colors text-xs font-data-mono">
+        <td class="p-3 font-bold">${pos.symbol}</td>
+        <td class="p-3"><span class="${pos.type === 'BUY' ? 'text-secondary' : 'text-error'} font-bold">${pos.type}</span></td>
+        <td class="p-3 ${isGreen ? 'text-secondary' : 'text-error'} font-bold">${isGreen ? '+' : ''}₹${pnl.toFixed(2)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ----------------- SIGNALS GRID ENGINE -----------------
+function renderSignalsGrid() {
+  const container = document.getElementById('signals-grid-container');
+  if (!container) return;
+
+  container.innerHTML = state.signals.map(sig => {
+    const isBuy = sig.type === 'BUY';
+    const typeClass = isBuy ? 'bg-secondary/20 text-secondary border-secondary/20' : 'bg-error/20 text-error border-error/20';
+
+    return `
+      <div class="glass-panel p-5 rounded-2xl border border-outline-variant/30 flex flex-col gap-3 relative hover:border-primary/40 transition-all">
         <div class="flex justify-between items-start">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-sm text-on-surface">${log.symbol}</span>
-            <span class="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[9px] font-bold text-primary uppercase">${log.strategy_tag}</span>
+          <div>
+            <h3 class="font-headline-md text-base font-bold">${sig.symbol}</h3>
+            <span class="text-[9px] text-on-surface-variant font-bold uppercase">${sig.category} • ${sig.strategy_name}</span>
           </div>
-          <span class="text-[9px] text-on-surface-variant font-medium">${formatTimestamp(log.timestamp)}</span>
+          <span class="${typeClass} font-bold text-[9px] px-2.5 py-0.5 rounded border uppercase">${sig.type}</span>
         </div>
-        <p class="text-xs text-on-surface-variant leading-relaxed">${log.note}</p>
-        
-        ${log.reflection ? `
-          <div class="bg-surface-container-lowest/50 p-2.5 rounded-xl border border-outline-variant/10 text-[11px] flex gap-2 items-start mt-1">
-            <i data-lucide="award" class="w-3.5 h-3.5 text-primary shrink-0 mt-0.5"></i>
-            <p class="italic text-on-surface-variant"><span class="font-bold uppercase text-[9px] not-italic text-primary mr-1">Reflection:</span>${log.reflection}</p>
-          </div>
-        ` : ''}
-        
-        <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-outline-variant/10">
-          <span class="text-[9px] text-on-surface-variant font-bold uppercase">Mental Radar:</span>
-          <span class="px-2 py-0.5 border rounded-full text-[9px] font-bold uppercase tracking-wider ${moodColor}">${log.emotion}</span>
+        <div class="grid grid-cols-2 gap-4 py-2 border-y border-outline-variant/10 text-xs font-data-mono">
+          <div><p class="text-[9px] text-on-surface-variant font-bold">ENTRY</p><p class="font-bold text-primary">₹${sig.entry_price.toFixed(2)}</p></div>
+          <div class="text-right"><p class="text-[9px] text-on-surface-variant font-bold">STOP LOSS</p><p class="font-bold text-error">₹${sig.sl.toFixed(2)}</p></div>
         </div>
+        <div class="flex justify-between items-center text-[10px] font-data-mono text-secondary pt-1">
+          <span>T1: ₹${sig.t1.toFixed(2)}</span><span>T2: ₹${sig.t2.toFixed(2)}</span><span>T3: ₹${sig.t3.toFixed(2)}</span>
+        </div>
+        <button onclick="presetTradeFromSignal('${sig.symbol}', '${sig.type}', ${sig.entry_price})" class="w-full py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-bold uppercase transition-all">Preset to Trade</button>
       </div>
     `;
   }).join('');
-  safeCreateIcons();
 }
 
-function renderDashboardMoodStats() {
-  const container = document.getElementById('dash-mood-stats');
-  if (!container) return;
-
-  if (state.journals.length === 0) {
-    container.innerHTML = `<p class="text-xs text-on-surface-variant text-center py-2">Log trade reflections to draw statistics.</p>`;
-    return;
-  }
-
-  const counts = { Disciplined: 0, Fearful: 0, Greedy: 0 };
-  state.journals.forEach(j => {
-    if (counts[j.emotion] !== undefined) counts[j.emotion]++;
-  });
-
-  const total = state.journals.length;
-  const pDisc = Math.round((counts.Disciplined / total) * 100) || 0;
-  const pFear = Math.round((counts.Fearful / total) * 100) || 0;
-  const pGree = Math.round((counts.Greedy / total) * 100) || 0;
-
-  container.innerHTML = `
-    <div class="flex flex-col gap-2.5 text-xs">
-      <div>
-        <div class="flex justify-between font-bold mb-1">
-          <span class="text-secondary uppercase text-[10px]">Disciplined</span>
-          <span>${pDisc}% (${counts.Disciplined})</span>
-        </div>
-        <div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
-          <div class="bg-secondary h-full" style="width: ${pDisc}%"></div>
-        </div>
-      </div>
-      <div>
-        <div class="flex justify-between font-bold mb-1">
-          <span class="text-tertiary uppercase text-[10px]">Fearful</span>
-          <span>${pFear}% (${counts.Fearful})</span>
-        </div>
-        <div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
-          <div class="bg-tertiary h-full" style="width: ${pFear}%"></div>
-        </div>
-      </div>
-      <div>
-        <div class="flex justify-between font-bold mb-1">
-          <span class="text-error uppercase text-[10px]">Greedy</span>
-          <span>${pGree}% (${counts.Greedy})</span>
-        </div>
-        <div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
-          <div class="bg-error h-full" style="width: ${pGree}%"></div>
-        </div>
-      </div>
-    </div>
-  `;
+function presetTradeFromSignal(symbol, type, price) {
+  state.orderForm.symbol = symbol;
+  state.orderForm.type = type;
+  switchView('trade');
+  showToast(`Loaded trade setup for ${symbol} ${type} @ ₹${price}!`, "info");
 }
 
-// ----------------- SUBSCRIPTION & PAYMENTS (RAZORPAY) -----------------
-let selectedUpgradePlan = 'Pro';
-let isYearlyBilling = false;
-const planRates = {
-  Pro: { monthly: 299, yearly: 239 },
-  Prime: { monthly: 999, yearly: 799 }
-};
+// ----------------- AI AGENT & HEATMAP ENGINE -----------------
+function renderAIMetrics() {
+  const sEl = document.getElementById('ai-metrics-states');
+  if (sEl) sEl.innerText = state.aiState.statesLearned;
 
-function setupSubscriptions() {
-  const billingToggle = document.getElementById('billing-toggle');
-  
-  billingToggle.addEventListener('click', () => {
-    isYearlyBilling = !isYearlyBilling;
-    const circle = document.getElementById('toggle-circle');
-    const monthlyLabel = document.getElementById('monthly-label');
-    const yearlyLabel = document.getElementById('yearly-label');
-    const proPrice = document.getElementById('pro-price');
-    const primePrice = document.getElementById('prime-price');
+  const aEl = document.getElementById('ai-metrics-accuracy');
+  if (aEl) aEl.innerText = `${state.aiState.accuracy}%`;
 
-    if (isYearlyBilling) {
-      circle.classList.add('translate-x-6');
-      yearlyLabel.className = 'text-primary font-bold text-sm transition-colors';
-      monthlyLabel.className = 'text-on-surface-variant font-bold text-sm transition-colors';
-      
-      proPrice.textContent = `₹${planRates.Pro.yearly}`;
-      primePrice.textContent = `₹${planRates.Prime.yearly}`;
-    } else {
-      circle.classList.remove('translate-x-6');
-      monthlyLabel.className = 'text-on-surface font-bold text-sm transition-colors';
-      yearlyLabel.className = 'text-on-surface-variant font-bold text-sm transition-colors';
-      
-      proPrice.textContent = `₹${planRates.Pro.monthly}`;
-      primePrice.textContent = `₹${planRates.Prime.monthly}`;
-    }
-  });
+  const pEl = document.getElementById('ai-metrics-predictions');
+  if (pEl) pEl.innerText = state.aiState.totalPredictions;
 
-  // Upgrade buttons triggers
-  document.getElementById('subs-pro-btn').addEventListener('click', () => openRazorpayModal('Pro'));
-  document.getElementById('subs-prime-btn').addEventListener('click', () => openRazorpayModal('Prime'));
-
-  // Razorpay controls
-  document.getElementById('payment-modal-close-btn').addEventListener('click', closeRazorpayModal);
-  document.getElementById('payment-modal-overlay').addEventListener('click', closeRazorpayModal);
-  
-  document.getElementById('pay-upi-btn').addEventListener('click', () => showPaymentDetails('upi'));
-  document.getElementById('pay-card-btn').addEventListener('click', () => showPaymentDetails('card'));
-
-  document.getElementById('pay-confirm-qr-btn').addEventListener('click', submitSubscriptionUpgrade);
-  document.getElementById('pay-confirm-card-btn').addEventListener('click', submitSubscriptionUpgrade);
-}
-
-function openRazorpayModal(planName) {
-  selectedUpgradePlan = planName;
-  const rate = isYearlyBilling ? planRates[planName].yearly : planRates[planName].monthly;
-  const total = isYearlyBilling ? rate * 12 : rate;
-
-  document.getElementById('modal-amount').innerText = `₹${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-  document.querySelectorAll('.qr-amt').forEach(el => el.innerText = total.toLocaleString());
-
-  const modal = document.getElementById('payment-modal');
-  const modalContent = document.getElementById('modal-content');
-  
-  modal.classList.remove('hidden');
-  setTimeout(() => {
-    modalContent.classList.remove('scale-95');
-    modalContent.classList.add('scale-100');
-  }, 10);
-  document.body.style.overflow = 'hidden';
-
-  // Default to UPI view
-  showPaymentDetails('upi');
-}
-
-function closeRazorpayModal() {
-  const modal = document.getElementById('payment-modal');
-  const modalContent = document.getElementById('modal-content');
-  
-  modalContent.classList.add('scale-95');
-  modalContent.classList.remove('scale-100');
-  
-  setTimeout(() => {
-    modal.classList.add('hidden');
-    document.body.style.overflow = 'auto';
-  }, 200);
-}
-
-function showPaymentDetails(method) {
-  const qrSection = document.getElementById('upi-qr-section');
-  const cardSection = document.getElementById('card-details-section');
-
-  const upiBtn = document.getElementById('pay-upi-btn');
-  const cardBtn = document.getElementById('pay-card-btn');
-
-  if (method === 'upi') {
-    qrSection.classList.remove('hidden');
-    cardSection.classList.add('hidden');
-    upiBtn.className = "flex items-center gap-3 p-3 bg-white border border-blue-500 rounded-xl transition-colors shadow-sm text-left grow";
-    cardBtn.className = "flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-500 transition-colors shadow-sm text-left grow";
-  } else {
-    cardSection.classList.remove('hidden');
-    qrSection.classList.add('hidden');
-    cardBtn.className = "flex items-center gap-3 p-3 bg-white border border-blue-500 rounded-xl transition-colors shadow-sm text-left grow";
-    upiBtn.className = "flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-500 transition-colors shadow-sm text-left grow";
+  const rEl = document.getElementById('ai-metrics-reward');
+  if (rEl) {
+    rEl.innerText = state.aiState.netReward >= 0 ? `+${state.aiState.netReward}` : state.aiState.netReward;
+    rEl.className = `text-xl font-extrabold font-data-mono mt-1 ${state.aiState.netReward >= 0 ? 'text-secondary' : 'text-error'}`;
   }
 }
 
-async function submitSubscriptionUpgrade() {
-  closeRazorpayModal();
-  try {
-    const res = await fetch('/api/subscription/upgrade', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tier: selectedUpgradePlan,
-        billing_cycle: isYearlyBilling ? 'yearly' : 'monthly'
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      // Refresh UI state
-      pollAPI();
-      loadSignals();
-      switchView('dashboard');
-    } else {
-      showToast("Subscription upgrade failed.", "error");
-    }
-  } catch (err) {
-    console.error(err);
-    showToast("Network error completing transaction.", "error");
-  }
-}
+function renderQTableHeatmap() {
+  const canvas = document.getElementById('ai-qtable-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-// ----------------- ADMIN PANEL API FORM ACTIONS -----------------
-function setupAdminPanel() {
-  // Reset balance trigger
-  const resetBtn = document.getElementById('dash-reset-balance-btn');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', async () => {
-      if (confirm("Reset paper trading simulated balance back to ₹1,00,000.00 and close active positions?")) {
-        try {
-          await fetch('/api/user/reset-balance', { method: 'POST' });
-        } catch(e) {}
-        state.user.paper_balance = 100000.00;
-        state.activePositions = [];
-        updatePortfolioUI();
-        showToast("Paper Trading balance reset to ₹1,00,000.00!", "success");
-      }
-    });
-  }
+  const records = state.aiState.qtable;
+  const w = canvas.width = canvas.parentElement.clientWidth || 400;
+  const h = canvas.height = canvas.parentElement.clientHeight || 240;
 
-  // Price overrides
-  const priceForm = document.getElementById('admin-price-override-form');
-  if (priceForm) {
-    priceForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const symbol = document.getElementById('admin-override-symbol').value;
-      const price = parseFloat(document.getElementById('admin-override-price').value);
-
-      if (isNaN(price) || price <= 0) {
-        showToast("Please enter a valid price.", "error");
-        return;
-      }
-
-      try {
-        await fetch('/api/market/update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ symbol, price })
-        });
-      } catch (err) {}
-      
-      if (state.marketPrices[symbol]) {
-        state.marketPrices[symbol].price = price;
-      }
-      showToast(`Price for ${symbol} updated to ₹${price.toFixed(2)}!`, "success");
-      updateMarketUI({});
-      priceForm.reset();
-    });
-  }
-
-  // System Broadcaster Toast form
-  const broadcastForm = document.getElementById('admin-broadcast-form');
-  if (broadcastForm) {
-    broadcastForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const message = document.getElementById('admin-broadcast-message').value;
-      const type = document.getElementById('admin-broadcast-type').value;
-
-      try {
-        await fetch('/api/broadcasts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message, type })
-        });
-      } catch (err) {}
-
-      showToast(message, type);
-      broadcastForm.reset();
-    });
-  }
-
-  // User Settings Overrider
-  const userOverrideForm = document.getElementById('admin-user-override-form');
-  if (userOverrideForm) {
-    userOverrideForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const tier = document.getElementById('admin-user-tier').value;
-      const balance = parseFloat(document.getElementById('admin-user-balance').value);
-
-      if (!isNaN(balance)) {
-        state.user.paper_balance = balance;
-      }
-      state.user.subscription_tier = tier;
-      updatePortfolioUI();
-      showToast(`Account updated: Tier=${tier}, Balance=₹${state.user.paper_balance.toLocaleString(undefined, {minimumFractionDigits:2})}!`, "success");
-    });
-  }
-
-  // Custom Signal Injector form
-  const sigForm = document.getElementById('admin-signal-injector-form');
-  if (sigForm) {
-    sigForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const symbol = document.getElementById('admin-sig-symbol').value;
-      const name = document.getElementById('admin-sig-name').value;
-      const category = document.getElementById('admin-sig-cat').value;
-      const type = document.getElementById('admin-sig-type').value;
-      const is_premium = parseInt(document.getElementById('admin-sig-premium').value);
-      const entry_price = parseFloat(document.getElementById('admin-sig-entry').value);
-      const sl = parseFloat(document.getElementById('admin-sig-sl').value);
-      const t1 = parseFloat(document.getElementById('admin-sig-t1').value);
-      const t2 = parseFloat(document.getElementById('admin-sig-t2').value);
-      const t3 = parseFloat(document.getElementById('admin-sig-t3').value);
-      const rr = (targetDiff / entryDiff).toFixed(1);
-      const rr_ratio = `1:${rr}`;
-
-      try {
-        const res = await fetch('/api/signals/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            symbol, strategy_name, category, type, entry_price, t1, t2, t3, sl, rr_ratio, is_premium
-          })
-        });
-
-        if (res.ok) {
-          sigForm.reset();
-          loadSignals();
-        } else {
-          showToast("Error injecting manual signal.", "error");
-        }
-      } catch (err) {
-        console.error(err);
-        showToast("Connection error injecting signal.", "error");
-      }
-    });
-  }
-}
-
-// ----------------- AUXILIARY HELPERS -----------------
-function formatTimestamp(tsString) {
-  const date = new Date(tsString);
-  const diffMs = new Date() - date;
-  const diffSec = Math.floor(diffMs / 1000);
-  
-  if (diffSec < 60) return `${diffSec}s ago`;
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  
-  return date.toLocaleDateString();
-}
-
-// Language trigger
-function setupLanguageSelector() {
-  const btn = document.getElementById('language-toggle');
-  btn.addEventListener('click', () => {
-    const nextLang = state.currentLanguage === 'EN' ? 'HI' : 'EN';
-    translateApp(nextLang);
-  });
-}
-
-// ----------------- PWA AND SW ACTIVATOR -----------------
-let deferredInstallPrompt = null;
-function setupPWAFeatures() {
-  const installBtn = document.getElementById('pwa-install-btn');
-
-  // Intercept beforeinstallprompt
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredInstallPrompt = e;
-    installBtn.classList.remove('hidden');
-    installBtn.classList.add('flex');
-  });
-
-  installBtn.addEventListener('click', async () => {
-    if (!deferredInstallPrompt) return;
-    deferredInstallPrompt.prompt();
-    const { outcome } = await deferredInstallPrompt.userChoice;
-    if (outcome === 'accepted') {
-      console.log('User accepted PWA installation');
-      installBtn.classList.add('hidden');
-      installBtn.classList.remove('flex');
-    }
-    deferredInstallPrompt = null;
-  });
-
-  window.addEventListener('appinstalled', () => {
-    console.log('TradeMaster app successfully installed.');
-    installBtn.classList.add('hidden');
-    installBtn.classList.remove('flex');
-  });
-
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('ServiceWorker registered with scope:', reg.scope))
-        .catch(err => console.error('ServiceWorker registration failed:', err));
-    });
-  }
-}
-
-// ----------------- AI TRADING ENGINE CONTROLLER -----------------
-let qtableCanvas = null;
-let qtableCtx = null;
-let backtestCanvas = null;
-let backtestCtx = null;
-
-function resizeAICanvases() {
-  qtableCanvas = document.getElementById('ai-qtable-canvas');
-  backtestCanvas = document.getElementById('ai-backtest-canvas');
-
-  if (qtableCanvas) {
-    const parent = qtableCanvas.parentElement;
-    qtableCanvas.width = parent.clientWidth * window.devicePixelRatio;
-    qtableCanvas.height = parent.clientHeight * window.devicePixelRatio;
-    qtableCtx = qtableCanvas.getContext('2d');
-    qtableCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  }
-
-  if (backtestCanvas) {
-    const parent = backtestCanvas.parentElement;
-    backtestCanvas.width = parent.clientWidth * window.devicePixelRatio;
-    backtestCanvas.height = parent.clientHeight * window.devicePixelRatio;
-    backtestCtx = backtestCanvas.getContext('2d');
-    backtestCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  }
-}
-
-async function pollAIStats() {
-  try {
-    // 1. Fetch Stats
-    const statsRes = await fetch('/api/ai/stats');
-    const stats = await statsRes.json();
-    
-    // Store in global state for cross-tab availability
-    state.recentAiTrades = stats.recentPredictions || [];
-
-    const statesEl = document.getElementById('ai-metrics-states');
-    if (statesEl) statesEl.innerText = stats.statesLearned;
-    
-    const accEl = document.getElementById('ai-metrics-accuracy');
-    if (accEl) accEl.innerText = `${stats.accuracy}%`;
-    
-    const predEl = document.getElementById('ai-metrics-predictions');
-    if (predEl) predEl.innerText = stats.totalPredictions;
-    
-    const rewardEl = document.getElementById('ai-metrics-reward');
-    if (rewardEl) {
-      rewardEl.innerText = stats.netReward >= 0 ? `+${stats.netReward}` : stats.netReward;
-      rewardEl.className = `text-xl font-extrabold font-data-mono mt-1 ${stats.netReward >= 0 ? 'text-secondary' : 'text-error'}`;
-    }
-
-    // 2. Fetch Q-Table records (only if canvas is present in view)
-    const qtableCanvasEl = document.getElementById('ai-qtable-canvas');
-    if (qtableCanvasEl) {
-      const qtableRes = await fetch('/api/ai/q-table');
-      const qtable = await qtableRes.json();
-      drawQTableHeatmap(qtable);
-    }
-
-    // 3. Render Predictions Table (only if in view)
-    const tbody = document.getElementById('ai-predictions-tbody');
-    if (tbody) {
-      if (stats.recentPredictions.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="p-4 text-center text-on-surface-variant font-body-base text-xs">AI agent has not placed any predictions yet. Waiting for market states...</td>
-          </tr>
-        `;
-      } else {
-        tbody.innerHTML = stats.recentPredictions.map(trade => {
-          const actionLabels = { 0: 'HOLD', 1: 'BUY', 2: 'SELL' };
-          const actionLabel = actionLabels[trade.predicted_action] || 'HOLD';
-          
-          let actionClass = 'bg-surface-variant/40 text-on-surface-variant border-outline-variant/30';
-          if (trade.predicted_action === 1) actionClass = 'bg-secondary/15 text-secondary border-secondary/20';
-          else if (trade.predicted_action === 2) actionClass = 'bg-tertiary-container/15 text-tertiary-container border-tertiary-container/20';
-
-          const currencySymbol = '₹';
-          
-          let pnlText = '';
-          if (trade.status === 'ACTIVE') {
-            const currentPriceData = state.marketPrices[trade.symbol];
-            if (currentPriceData) {
-              const currentPrice = currentPriceData.price;
-              const priceDiff = ((currentPrice - trade.entry_price) / trade.entry_price) * 100;
-              let pnl = 0.0;
-              if (trade.predicted_action === 1) { // BUY
-                pnl = priceDiff * 1000.00; // Simulated position sizing
-              } else if (trade.predicted_action === 2) { // SHORT
-                pnl = -priceDiff * 1000.00;
-              }
-              const isProfit = pnl >= 0;
-              pnlText = `<span class="${isProfit ? 'text-secondary' : 'text-error'} font-bold">${isProfit ? '+' : ''}${currencySymbol}${pnl.toFixed(2)}</span>`;
-            } else {
-              pnlText = '<span class="text-on-surface-variant italic">Active</span>';
-            }
-          } else {
-            pnlText = `<span class="${trade.pnl >= 0 ? 'text-secondary' : 'text-error'} font-bold">${trade.pnl >= 0 ? '+' : ''}${currencySymbol}${trade.pnl.toFixed(2)}</span>`;
-          }
-
-          let feedbackUi = '';
-          if (trade.user_feedback === 'NONE') {
-            feedbackUi = `
-              <div class="flex justify-center gap-2">
-                <button onclick="submitAIFeedback(${trade.id}, 'LIKE')" class="p-1 hover:bg-secondary/20 text-on-surface-variant hover:text-secondary rounded border border-outline-variant/30">
-                  <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
-                </button>
-                <button onclick="submitAIFeedback(${trade.id}, 'DISLIKE')" class="p-1 hover:bg-error/20 text-on-surface-variant hover:text-error rounded border border-outline-variant/30">
-                  <i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i>
-                </button>
-              </div>
-            `;
-          } else {
-            const isLike = trade.user_feedback === 'LIKE';
-            feedbackUi = `
-              <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase ${isLike ? 'bg-secondary/10 text-secondary border border-secondary/20' : 'bg-error/10 text-error border border-error/20'}">
-                ${isLike ? '👍 Approved' : '👎 Rejected'}
-              </span>
-            `;
-          }
-
-          const rewardPointsVal = trade.reward_points !== undefined ? trade.reward_points : 0;
-          const pointsHtml = `<div class="text-[9px] font-bold ${rewardPointsVal >= 0 ? 'text-secondary' : 'text-error'} mt-0.5">${rewardPointsVal >= 0 ? '+' : ''}${rewardPointsVal} pts</div>`;
-          const explanationHtml = `<div class="text-[9px] text-on-surface-variant leading-relaxed max-w-[280px] whitespace-normal mt-0.5 font-semibold">${trade.explanation || 'Running self-reflection loop analysis...'}</div>`;
-
-          return `
-            <tr class="border-b border-outline-variant/10 hover:bg-surface-variant/20 transition-colors">
-              <td class="p-3 font-semibold">${trade.symbol}</td>
-              <td class="p-3">
-                <span class="px-2 py-0.5 rounded text-[9px] font-bold border ${actionClass}">${actionLabel}</span>
-              </td>
-              <td class="p-3">
-                ${pnlText}
-                ${pointsHtml}
-              </td>
-              <td class="p-3">
-                <span class="font-semibold ${trade.reward >= 0 ? 'text-secondary' : 'text-error'}">${trade.reward >= 0 ? '+' : ''}${trade.reward.toFixed(1)}</span>
-                ${explanationHtml}
-              </td>
-              <td class="p-3 text-center">${feedbackUi}</td>
-            </tr>
-          `;
-        }).join('');
-        safeCreateIcons();
-      }
-    }
-
-    // 4. If currently on the signals tab, refresh the signals grid
-    if (state.activeView === 'signals') {
-      renderSignalsGrid();
-    }
-
-    // 5. If on AI Agent tab, poll pattern success analytics
-    if (state.activeView === 'ai') {
-      pollAIPatterns();
-    }
-
-  } catch (err) {
-    console.warn("Server unavailable - using client-side AI metrics & Q-table fallback:", err);
-
-    // Fallback AI Metrics
-    const statesEl = document.getElementById('ai-metrics-states');
-    if (statesEl) statesEl.innerText = "48";
-    
-    const accEl = document.getElementById('ai-metrics-accuracy');
-    if (accEl) accEl.innerText = "76.4%";
-    
-    const predEl = document.getElementById('ai-metrics-predictions');
-    if (predEl) predEl.innerText = "124";
-    
-    const rewardEl = document.getElementById('ai-metrics-reward');
-    if (rewardEl) {
-      rewardEl.innerText = "+18.5";
-      rewardEl.className = "text-xl font-extrabold font-data-mono mt-1 text-secondary";
-    }
-
-    // Generate colorful client-side Q-table heatmap records
-    const defaultQTable = [
-      { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 1, q_value: 1.85 },
-      { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 0, q_value: 0.12 },
-      { state_string: 'RELIANCE|15m|EMA_ABOVE_20', action: 2, q_value: -1.20 },
-      { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 1, q_value: 1.62 },
-      { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 0, q_value: 0.05 },
-      { state_string: 'TCS|5m|SMC_FVG_SUPPORT', action: 2, q_value: -0.95 },
-      { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 2, q_value: 1.45 },
-      { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 0, q_value: -0.20 },
-      { state_string: 'INFY|1h|RSI_OVERBOUGHT', action: 1, q_value: -1.15 },
-      { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 1, q_value: 1.78 },
-      { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 0, q_value: 0.10 },
-      { state_string: 'SBIN|15m|BREAKOUT_VOL', action: 2, q_value: -1.40 },
-      { state_string: 'HDFCBANK|5m|VWAP_REJECTION', action: 1, q_value: 1.35 },
-      { state_string: 'HDFCBANK|5m|VWAP_REJECTION', action: 0, q_value: 0.08 },
-      { state_string: 'HDFCBANK|5m|VWAP_REJECTION', action: 2, q_value: -0.80 }
-    ];
-
-    drawQTableHeatmap(defaultQTable);
-
-    // Fallback AI predictions table
-    const tbody = document.getElementById('ai-predictions-tbody');
-    if (tbody) {
-      const defaultAiTrades = [
-        { id: 1, symbol: 'RELIANCE', predicted_action: 1, status: 'CLOSED', pnl: 4850.00, reward: 2.5, reward_points: 25, user_feedback: 'LIKE', explanation: 'Confluence of 15m EMA 20/50 cross + RSI strength > 55.' },
-        { id: 2, symbol: 'TCS', predicted_action: 1, status: 'CLOSED', pnl: 2300.00, reward: 1.8, reward_points: 18, user_feedback: 'LIKE', explanation: 'Order block liquidity grab + high volume confirmation.' },
-        { id: 3, symbol: 'INFY', predicted_action: 2, status: 'CLOSED', pnl: -1200.00, reward: -0.8, reward_points: -8, user_feedback: 'DISLIKE', explanation: 'Short position stopped out during unexpected sector news rally.' },
-        { id: 4, symbol: 'SBIN', predicted_action: 1, status: 'ACTIVE', entry_price: 1013.60, reward: 1.5, reward_points: 15, user_feedback: 'NONE', explanation: 'Consolidation breakout above daily resistance.' }
-      ];
-
-      tbody.innerHTML = defaultAiTrades.map(trade => {
-        const actionLabels = { 0: 'HOLD', 1: 'BUY', 2: 'SELL' };
-        const actionLabel = actionLabels[trade.predicted_action] || 'HOLD';
-        
-        let actionClass = 'bg-surface-variant/40 text-on-surface-variant border-outline-variant/30';
-        if (trade.predicted_action === 1) actionClass = 'bg-secondary/15 text-secondary border-secondary/20';
-        else if (trade.predicted_action === 2) actionClass = 'bg-tertiary-container/15 text-tertiary-container border-tertiary-container/20';
-
-        const currencySymbol = '₹';
-        const pnlText = trade.status === 'ACTIVE' 
-          ? '<span class="text-secondary font-bold">+₹1,500.00</span>' 
-          : `<span class="${trade.pnl >= 0 ? 'text-secondary' : 'text-error'} font-bold">${trade.pnl >= 0 ? '+' : ''}${currencySymbol}${trade.pnl.toFixed(2)}</span>`;
-
-        let feedbackUi = '';
-        if (trade.user_feedback === 'NONE') {
-          feedbackUi = `
-            <div class="flex justify-center gap-2">
-              <button onclick="submitAIFeedback(${trade.id}, 'LIKE')" class="p-1 hover:bg-secondary/20 text-on-surface-variant hover:text-secondary rounded border border-outline-variant/30">
-                <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
-              </button>
-              <button onclick="submitAIFeedback(${trade.id}, 'DISLIKE')" class="p-1 hover:bg-error/20 text-on-surface-variant hover:text-error rounded border border-outline-variant/30">
-                <i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-          `;
-        } else {
-          const isLike = trade.user_feedback === 'LIKE';
-          feedbackUi = `
-            <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase ${isLike ? 'bg-secondary/10 text-secondary border border-secondary/20' : 'bg-error/10 text-error border border-error/20'}">
-              ${isLike ? '👍 Approved' : '👎 Rejected'}
-            </span>
-          `;
-        }
-
-        const pointsHtml = `<div class="text-[9px] font-bold ${trade.reward_points >= 0 ? 'text-secondary' : 'text-error'} mt-0.5">${trade.reward_points >= 0 ? '+' : ''}${trade.reward_points} pts</div>`;
-        const explanationHtml = `<div class="text-[9px] text-on-surface-variant leading-relaxed max-w-[280px] whitespace-normal mt-0.5 font-semibold">${trade.explanation}</div>`;
-
-        return `
-          <tr class="border-b border-outline-variant/10 hover:bg-surface-variant/20 transition-colors">
-            <td class="p-3 font-semibold">${trade.symbol}</td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold border ${actionClass}">${actionLabel}</span></td>
-            <td class="p-3">${pnlText}${pointsHtml}</td>
-            <td class="p-3">
-              <span class="font-semibold ${trade.reward >= 0 ? 'text-secondary' : 'text-error'}">${trade.reward >= 0 ? '+' : ''}${trade.reward.toFixed(1)}</span>
-              ${explanationHtml}
-            </td>
-            <td class="p-3 text-center">${feedbackUi}</td>
-          </tr>
-        `;
-      }).join('');
-      safeCreateIcons();
-    }
-  }
-}
-
-async function submitAIFeedback(tradeId, feedback) {
-  try {
-    const res = await fetch('/api/ai/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tradeId, feedback })
-    });
-    if (res.ok) {
-      pollAPI();
-    } else {
-      showToast("Error recording feedback.", "error");
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-function drawQTableHeatmap(records) {
-  if (!qtableCanvas || !qtableCtx || records.length === 0) return;
-
-  const w = qtableCanvas.width / window.devicePixelRatio;
-  const h = qtableCanvas.height / window.devicePixelRatio;
-
-  qtableCtx.clearRect(0, 0, w, h);
-
-  // Group states
-  const states = [...new Set(records.map(r => r.state_string))].slice(0, 8); // top 8 states
-  const actions = [0, 1, 2]; // HOLD, BUY, SELL
-  const actionLabels = ['HOLD', 'BUY', 'SELL'];
+  ctx.clearRect(0, 0, w, h);
+  const states = [...new Set(records.map(r => r.state_string))].slice(0, 5);
+  const actions = ['HOLD', 'BUY', 'SELL'];
 
   const headerH = 24;
   const colW = (w - 140) / 3;
   const rowH = (h - headerH) / Math.max(states.length, 1);
 
-  // Draw Headers
-  qtableCtx.fillStyle = state.theme === 'dark' ? '#bdc8d3' : '#31353b';
-  qtableCtx.font = 'bold 10px JetBrains Mono';
-  qtableCtx.textAlign = 'left';
-  qtableCtx.fillText('STATE ENCODING', 10, 16);
+  ctx.fillStyle = '#bdc8d3';
+  ctx.font = 'bold 10px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('STATE ENCODING', 10, 16);
 
-  qtableCtx.textAlign = 'center';
+  ctx.textAlign = 'center';
   actions.forEach((act, idx) => {
-    qtableCtx.fillText(actionLabels[idx], 140 + idx * colW + colW/2, 16);
+    ctx.fillText(act, 140 + idx * colW + colW / 2, 16);
   });
 
-  // Render Rows
   states.forEach((stateStr, rIdx) => {
     const y = headerH + rIdx * rowH;
+    ctx.fillStyle = '#e0e2ea';
+    ctx.font = '9px JetBrains Mono';
+    ctx.textAlign = 'left';
+    const displayLabel = stateStr.length > 18 ? stateStr.substring(0, 16) + '..' : stateStr;
+    ctx.fillText(displayLabel, 10, y + rowH / 2 + 3);
 
-    // Draw state string label
-    qtableCtx.fillStyle = state.theme === 'dark' ? '#e0e2ea' : '#0b0f14';
-    qtableCtx.font = '9px JetBrains Mono';
-    qtableCtx.textAlign = 'left';
-    
-    // Truncate state labels if too long
-    const displayLabel = stateStr.length > 20 ? stateStr.substring(0, 18) + '..' : stateStr;
-    qtableCtx.fillText(displayLabel, 10, y + rowH/2 + 4);
-
-    // Draw Q-value cell boxes
-    actions.forEach((act, cIdx) => {
+    [0, 1, 2].forEach((actIdx, cIdx) => {
       const x = 140 + cIdx * colW;
-      const record = records.find(r => r.state_string === stateStr && r.action === act);
-      const qVal = record ? record.q_value : 0.0;
-
-      // Color intensity based on Q-value strength (clamped between -2.0 and +2.0)
+      const rec = records.find(r => r.state_string === stateStr && r.action === actIdx);
+      const qVal = rec ? rec.q_value : 0.0;
       const absVal = Math.min(Math.abs(qVal) / 2.0, 1.0);
-      let cellColor = 'rgba(100, 100, 100, 0.1)'; // default neutral gray
-      if (qVal > 0.01) {
-        cellColor = `rgba(0, 200, 83, ${0.1 + absVal * 0.7})`; // green saturation
-      } else if (qVal < -0.01) {
-        cellColor = `rgba(240, 143, 10, ${0.1 + absVal * 0.7})`; // orange/red saturation
-      }
 
-      qtableCtx.fillStyle = cellColor;
-      qtableCtx.fillRect(x + 2, y + 2, colW - 4, rowH - 4);
+      ctx.fillStyle = qVal > 0.01 ? `rgba(0, 200, 83, ${0.2 + absVal * 0.7})` : `rgba(240, 143, 10, ${0.2 + absVal * 0.7})`;
+      ctx.fillRect(x + 2, y + 2, colW - 4, rowH - 4);
 
-      // Draw values inside cells
-      qtableCtx.fillStyle = state.theme === 'dark' ? '#ffffff' : '#000000';
-      qtableCtx.font = 'bold 9px JetBrains Mono';
-      qtableCtx.textAlign = 'center';
-      qtableCtx.fillText(qVal.toFixed(2), x + colW/2, y + rowH/2 + 4);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px JetBrains Mono';
+      ctx.textAlign = 'center';
+      ctx.fillText(qVal.toFixed(2), x + colW / 2, y + rowH / 2 + 3);
     });
   });
 }
 
-function setupAIBindings() {
+function renderAIPredictionsTable() {
+  const tbody = document.getElementById('ai-predictions-tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = state.aiState.predictions.map(trade => {
+    const actionLabels = { 0: 'HOLD', 1: 'BUY', 2: 'SELL' };
+    const actionLabel = actionLabels[trade.predicted_action] || 'BUY';
+    const typeClass = trade.predicted_action === 1 ? 'bg-secondary/15 text-secondary border-secondary/20' : 'bg-tertiary-container/15 text-tertiary-container border-tertiary-container/20';
+
+    return `
+      <tr class="border-b border-outline-variant/10 hover:bg-surface-variant/20 transition-colors text-xs font-data-mono">
+        <td class="p-3 font-semibold">${trade.symbol}</td>
+        <td class="p-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold border ${typeClass}">${actionLabel}</span></td>
+        <td class="p-3"><span class="${trade.pnl >= 0 ? 'text-secondary' : 'text-error'} font-bold">${trade.pnl >= 0 ? '+' : ''}₹${trade.pnl.toFixed(2)}</span></td>
+        <td class="p-3">
+          <span class="${trade.reward >= 0 ? 'text-secondary' : 'text-error'} font-bold">${trade.reward >= 0 ? '+' : ''}${trade.reward.toFixed(1)}</span>
+          <div class="text-[9px] text-on-surface-variant mt-0.5 font-semibold">${trade.explanation}</div>
+        </td>
+        <td class="p-3 text-center">
+          <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase ${trade.user_feedback === 'LIKE' ? 'bg-secondary/10 text-secondary border border-secondary/20' : 'bg-error/10 text-error border border-error/20'}">
+            ${trade.user_feedback === 'LIKE' ? '👍 Approved' : '👎 Rejected'}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function setupAIBacktest() {
   const form = document.getElementById('ai-backtest-form');
   if (!form) return;
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const episodes = document.getElementById('ai-bt-episodes').value;
-    const epsilon = document.getElementById('ai-bt-epsilon').value;
-    const alpha = document.getElementById('ai-bt-alpha').value;
-    const gamma = document.getElementById('ai-bt-gamma').value;
+    const episodes = parseInt(document.getElementById('ai-bt-episodes')?.value) || 100;
 
-    showToast("Running AI Backtest Simulation...", "info");
+    let balance = 100000.00;
+    const history = [balance];
+    let wins = 0;
 
-    try {
-      const res = await fetch('/api/ai/backtest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ episodes, explorationRate: epsilon, learningRate: alpha, discountFactor: gamma })
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast("AI Backtest Optimization Complete!", "success");
-        document.getElementById('ai-bt-winrate').innerText = `Win Rate: ${data.winRate}%`;
-        document.getElementById('ai-bt-balance').innerText = `Final Balance: ₹${data.finalBalance.toLocaleString(undefined, {maximumFractionDigits: 2})}`;
-        drawBacktestCurve(data.balanceHistory);
-        pollAPI(); // refresh stats
-      } else {
-        showToast("Error running backtest.", "error");
-      }
-    } catch (err) {
-      console.warn("Server unavailable - running Backtest client-side simulation:", err);
-      let balance = 100000.00;
-      const history = [balance];
-      let wins = 0;
-      const total = parseInt(episodes) || 100;
-      
-      for (let i = 0; i < total; i++) {
-        const pnl = (Math.random() - 0.44) * 1200;
-        balance += pnl;
-        if (pnl > 0) wins++;
-        history.push(parseFloat(balance.toFixed(2)));
-      }
-      const winRate = Math.round((wins / total) * 100);
-      
-      document.getElementById('ai-bt-winrate').innerText = `Win Rate: ${winRate}%`;
-      document.getElementById('ai-bt-balance').innerText = `Final Balance: ₹${balance.toLocaleString(undefined, {maximumFractionDigits: 2})}`;
-      drawBacktestCurve(history);
-      showToast(`AI Backtest completed for ${total} episodes! Win Rate: ${winRate}%`, "success");
+    for (let i = 0; i < episodes; i++) {
+      const pnl = (Math.random() - 0.44) * 1200;
+      balance += pnl;
+      if (pnl > 0) wins++;
+      history.push(parseFloat(balance.toFixed(2)));
     }
+
+    const winRate = Math.round((wins / episodes) * 100);
+    const winRateEl = document.getElementById('ai-bt-winrate');
+    if (winRateEl) winRateEl.innerText = `Win Rate: ${winRate}%`;
+
+    const balEl = document.getElementById('ai-bt-balance');
+    if (balEl) balEl.innerText = `Final Balance: ₹${balance.toLocaleString(undefined, {maximumFractionDigits: 2})}`;
+
+    drawBacktestCurve(history);
+    showToast(`AI Backtest completed for ${episodes} episodes! Win Rate: ${winRate}%`, "success");
   });
 }
 
 function drawBacktestCurve(history) {
-  if (!backtestCanvas || !backtestCtx || history.length === 0) return;
+  const canvas = document.getElementById('ai-backtest-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-  const w = backtestCanvas.width / window.devicePixelRatio;
-  const h = backtestCanvas.height / window.devicePixelRatio;
+  const w = canvas.width = canvas.parentElement.clientWidth || 300;
+  const h = canvas.height = canvas.parentElement.clientHeight || 150;
 
-  backtestCtx.clearRect(0, 0, w, h);
+  ctx.clearRect(0, 0, w, h);
 
-  let maxBalance = Math.max(...history);
-  let minBalance = Math.min(...history);
-  const spread = maxBalance - minBalance;
-  
-  maxBalance += spread * 0.1 || 1000;
-  minBalance -= spread * 0.1 || 1000;
+  let maxB = Math.max(...history);
+  let minB = Math.min(...history);
+  const spread = maxB - minB || 1000;
+  maxB += spread * 0.1;
+  minB -= spread * 0.1;
 
-  const getX = (idx) => (idx / (history.length - 1)) * (w - 20) + 10;
-  const getY = (bal) => h - ((bal - minBalance) / (maxBalance - minBalance)) * (h - 20) - 10;
+  const getX = (i) => (i / (history.length - 1)) * (w - 20) + 10;
+  const getY = (b) => h - ((b - minB) / (maxB - minB)) * (h - 20) - 10;
 
-  // Draw chart grids
-  backtestCtx.strokeStyle = state.theme === 'dark' ? '#22272e' : '#e2e8f0';
-  backtestCtx.lineWidth = 1;
-  backtestCtx.beginPath();
-  backtestCtx.moveTo(0, h/2);
-  backtestCtx.lineTo(w, h/2);
-  backtestCtx.stroke();
+  ctx.strokeStyle = '#00c853';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
 
-  // Draw Line
-  backtestCtx.strokeStyle = '#00c853'; // green line for returns
-  backtestCtx.lineWidth = 2;
-  backtestCtx.beginPath();
-  backtestCtx.moveTo(getX(0), getY(history[0]));
-
-  for (let i = 1; i < history.length; i++) {
-    backtestCtx.lineTo(getX(i), getY(history[i]));
-  }
-  backtestCtx.stroke();
-
-  // Draw Points
-  backtestCtx.fillStyle = '#00b0ff';
-  backtestCtx.beginPath();
-  backtestCtx.arc(getX(history.length - 1), getY(history[history.length - 1]), 4, 0, 2 * Math.PI);
-  backtestCtx.fill();
-}
-
-function copyAITradeToPanel(symbol, type, price) {
-  // 1. Switch to trading tab
-  switchView('trade');
-  
-  // 2. Set the symbol in select control
-  const tradeSelect = document.getElementById('trade-symbol-selector');
-  if (tradeSelect) {
-    tradeSelect.value = symbol;
-    tradeSelect.dispatchEvent(new Event('change'));
-  }
-  
-  // 3. Enable Limit mode
-  const limitBtn = document.getElementById('ordertype-limit-btn');
-  if (limitBtn) {
-    limitBtn.click();
-  }
-  
-  // 4. Fill price input field
-  const priceInput = document.getElementById('order-limit-price');
-  if (priceInput) {
-    priceInput.value = price.toFixed(2);
-  }
-  
-  showToast(`Copied AI Trade preset: ${type} ${symbol} @ ₹${price.toFixed(2)}!`, "success");
-}
-function pollAITopPicks() {
-  const container = document.getElementById('dash-ai-picks');
-  if (!container) return;
-  
-  fetch('/api/ai/top-picks')
-    .then(res => res.json())
-    .then(picks => {
-      if (picks.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full py-4 text-center text-on-surface-variant text-xs">
-            AI Agent is currently analyzing patterns...
-          </div>
-        `;
-        return;
-      }
-      
-      const currencySymbol = '₹';
-      container.innerHTML = picks.map(p => {
-        const isBuy = p.type === 'BUY';
-        const typeClass = isBuy ? 'bg-secondary/15 text-secondary border-secondary/20' : 'bg-error/15 text-error border-error/20';
-        const indicatorBorder = isBuy ? 'border-secondary' : 'border-error';
-
-        return `
-          <div class="glass-panel p-3.5 rounded-xl border-l-4 ${indicatorBorder} bg-surface-container-lowest/30 flex flex-col gap-2 relative group hover:shadow-md transition-all">
-            <div class="flex justify-between items-start">
-              <span class="text-xs font-bold text-on-surface">${p.symbol}</span>
-              <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase border ${typeClass}">${p.type}</span>
-            </div>
-            <div class="text-[10px] text-on-surface-variant line-clamp-2 leading-relaxed">
-              ${p.reason}
-            </div>
-            <div class="flex justify-between items-center mt-1 border-t border-outline-variant/10 pt-1.5 text-[10px]">
-              <span class="font-data-mono font-bold text-primary">${currencySymbol}${p.price.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</span>
-              <button onclick="executeAIPickPreset('${p.symbol}', '${p.type}', ${p.price})" class="text-[8px] font-bold uppercase text-primary hover:underline flex items-center gap-0.5">
-                Trade
-                <i data-lucide="arrow-right" class="w-2.5 h-2.5"></i>
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-      
-      safeCreateIcons();
-    })
-    .catch(err => console.error("Error polling AI top picks:", err));
-}
-
-function executeAIPickPreset(symbol, type, price) {
-  switchView('trade');
-  const tradeSelect = document.getElementById('trade-symbol-selector');
-  if (tradeSelect) {
-    tradeSelect.value = symbol;
-    tradeSelect.dispatchEvent(new Event('change'));
-  }
-  const limitBtn = document.getElementById('ordertype-limit-btn');
-  if (limitBtn) limitBtn.click();
-  
-  const priceInput = document.getElementById('order-limit-price');
-  if (priceInput) priceInput.value = price.toFixed(2);
-  
-  showToast(`Loaded AI Top Pick: ${type} ${symbol} @ ₹${price.toFixed(2)}!`, "info");
-}
-
-function updateAICopilot() {
-  const card = document.getElementById('ai-copilot-card');
-  const statusEl = document.getElementById('ai-copilot-status');
-  const recEl = document.getElementById('ai-copilot-recommendation');
-  const actionsEl = document.getElementById('ai-copilot-actions');
-  const applyBtn = document.getElementById('ai-copilot-apply-btn');
-  
-  if (!card || !recEl) return;
-  
-  const currentSymbol = state.orderForm.symbol;
-  
-  // 1. Look for active AI prediction first
-  const activeAiTrade = (state.recentAiTrades || []).find(t => t.symbol === currentSymbol && t.status === 'ACTIVE');
-  
-  // 2. Look for active rule-based signal as fallback
-  const activeSignal = (state.signals || []).find(s => s.symbol === currentSymbol && !s.locked);
-  
-  if (activeAiTrade) {
-    const isBuy = activeAiTrade.predicted_action === 1;
-    const typeLabel = isBuy ? 'BUY' : 'SHORT';
-    
-    statusEl.innerText = "Active AI Trade";
-    statusEl.className = "text-[8px] font-extrabold uppercase bg-secondary/20 text-secondary border border-secondary/20 px-2 py-0.5 rounded";
-    
-    let pnlHtml = '<span class="text-on-surface-variant italic">Calculating...</span>';
-    const currentPriceData = state.marketPrices[currentSymbol];
-    const currencySymbol = '₹';
-    if (currentPriceData) {
-      const currentPrice = currentPriceData.price;
-      const priceDiff = ((currentPrice - activeAiTrade.entry_price) / activeAiTrade.entry_price) * 100;
-      let pnl = 0.0;
-      if (activeAiTrade.predicted_action === 1) { // BUY
-        pnl = priceDiff * 1000.00;
-      } else if (activeAiTrade.predicted_action === 2) { // SHORT
-        pnl = -priceDiff * 1000.00;
-      }
-      const isProfit = pnl >= 0;
-      pnlHtml = `<span class="${isProfit ? 'text-secondary' : 'text-error'} font-bold">${isProfit ? '+' : ''}${currencySymbol}${pnl.toFixed(2)}</span>`;
-    }
-
-    recEl.innerHTML = `
-      <div class="flex flex-col gap-1.5">
-        <p class="font-semibold text-on-surface">🤖 AI suggests: <span class="${isBuy ? 'text-secondary' : 'text-error'} font-extrabold">${typeLabel} ${currentSymbol}</span></p>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed">The AI agent entered a trade at <span class="font-bold text-primary">₹${activeAiTrade.entry_price.toFixed(2)}</span>. Live P&L: ${pnlHtml}. Click below to mirror this entry setup.</p>
-      </div>
-    `;
-    actionsEl.classList.remove('hidden');
-    
-    applyBtn.onclick = () => {
-      const limitBtn = document.getElementById('ordertype-limit-btn');
-      if (limitBtn) limitBtn.click();
-      
-      const priceInput = document.getElementById('order-limit-price');
-      if (priceInput) priceInput.value = activeAiTrade.entry_price.toFixed(2);
-      
-      const targetBtn = isBuy ? document.getElementById('order-buy-btn') : document.getElementById('order-sell-btn');
-      if (targetBtn) {
-        targetBtn.classList.add('ring-4', 'ring-primary', 'scale-105');
-        setTimeout(() => {
-          targetBtn.classList.remove('ring-4', 'ring-primary', 'scale-105');
-        }, 1500);
-      }
-      
-      showToast(`AI setup loaded! Click the highlighted button to execute.`, "success");
-    };
-  } else if (activeSignal) {
-    const isBuy = activeSignal.type === 'BUY';
-    const currencySymbol = '₹';
-    
-    statusEl.innerText = "Technical Signal";
-    statusEl.className = "text-[8px] font-extrabold uppercase bg-primary/20 text-primary border border-primary/20 px-2 py-0.5 rounded";
-    
-    recEl.innerHTML = `
-      <div class="flex flex-col gap-1.5">
-        <p class="font-semibold text-on-surface">📈 Strategy Pick: <span class="${isBuy ? 'text-secondary' : 'text-error'} font-extrabold">${activeSignal.type} ${currentSymbol}</span></p>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed">Trigger: <span class="font-semibold text-primary">${activeSignal.strategy_name}</span>. Entry: <span class="font-bold">₹${activeSignal.entry_price.toFixed(2)}</span>. Target 1: <span class="font-bold text-secondary">₹${activeSignal.t1.toFixed(2)}</span>. Stop Loss: <span class="font-bold text-error">₹${activeSignal.sl.toFixed(2)}</span>.</p>
-      </div>
-    `;
-    actionsEl.classList.remove('hidden');
-    
-    applyBtn.onclick = () => {
-      const limitBtn = document.getElementById('ordertype-limit-btn');
-      if (limitBtn) limitBtn.click();
-      
-      const priceInput = document.getElementById('order-limit-price');
-      if (priceInput) priceInput.value = activeSignal.entry_price.toFixed(2);
-      
-      const targetBtn = isBuy ? document.getElementById('order-buy-btn') : document.getElementById('order-sell-btn');
-      if (targetBtn) {
-        targetBtn.classList.add('ring-4', 'ring-primary', 'scale-105');
-        setTimeout(() => {
-          targetBtn.classList.remove('ring-4', 'ring-primary', 'scale-105');
-        }, 1500);
-      }
-      
-      showToast(`Signal setup loaded! Click the highlighted button to execute.`, "success");
-    };
-  } else {
-    // Dynamic real-time AI analysis for ANY selected symbol
-    const sym = currentSymbol || 'RELIANCE';
-    const priceObj = state.marketPrices[sym];
-    const livePrice = priceObj ? priceObj.price : 1270.0;
-    const isBullish = priceObj ? priceObj.change_percent >= 0 : true;
-    const typeLabel = isBullish ? 'BUY' : 'SHORT';
-    const entryP = livePrice;
-    const targetP = isBullish ? livePrice * 1.015 : livePrice * 0.985;
-    const stopP = isBullish ? livePrice * 0.992 : livePrice * 1.008;
-
-    statusEl.innerText = "Dynamic AI Analysis";
-    statusEl.className = "text-[8px] font-extrabold uppercase bg-secondary/20 text-secondary border border-secondary/20 px-2 py-0.5 rounded";
-
-    recEl.innerHTML = `
-      <div class="flex flex-col gap-1.5">
-        <p class="font-semibold text-on-surface">⚡ Live AI Setup: <span class="${isBullish ? 'text-secondary' : 'text-error'} font-extrabold">${typeLabel} ${sym}</span></p>
-        <p class="text-[10px] text-on-surface-variant leading-relaxed">Trigger: <span class="font-semibold text-primary">Multi-Indicator Confluence</span>. Entry: <span class="font-bold">₹${entryP.toFixed(2)}</span>. Target 1: <span class="font-bold text-secondary">₹${targetP.toFixed(2)}</span>. Stop Loss: <span class="font-bold text-error">₹${stopP.toFixed(2)}</span>.</p>
-      </div>
-    `;
-    actionsEl.classList.remove('hidden');
-
-    applyBtn.onclick = () => {
-      const limitBtn = document.getElementById('ordertype-limit-btn');
-      if (limitBtn) limitBtn.click();
-
-      const priceInput = document.getElementById('order-limit-price');
-      if (priceInput) priceInput.value = entryP.toFixed(2);
-
-      const targetBtn = isBullish ? document.getElementById('order-buy-btn') : document.getElementById('order-sell-btn');
-      if (targetBtn) {
-        targetBtn.classList.add('ring-4', 'ring-primary', 'scale-105');
-        setTimeout(() => {
-          targetBtn.classList.remove('ring-4', 'ring-primary', 'scale-105');
-        }, 1500);
-      }
-
-      showToast(`AI Setup for ${sym} loaded! Click highlighted button to execute.`, "success");
-    };
-  }
-}
-
-function pollAIPatterns() {
-  const tbody = document.getElementById('ai-patterns-tbody');
-  if (!tbody) return;
-
-  fetch('/api/ai/patterns')
-    .then(res => res.json())
-    .then(patterns => {
-      if (patterns.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="4" class="p-4 text-center text-on-surface-variant font-body-base text-xs">Waiting for Q-table records to analyze patterns...</td>
-          </tr>
-        `;
-        return;
-      }
-
-      tbody.innerHTML = patterns.map(p => {
-        // Humanize the pattern state string
-        const parts = p.state.split('|');
-        const stateDesc = parts.slice(3).join(', '); // EMA, VWAP, SMC details
-        
-        return `
-          <tr class="border-b border-outline-variant/10 hover:bg-surface-variant/20 transition-colors">
-            <td class="p-3">
-              <span class="font-bold text-on-surface block text-[11px]">${parts[0]} • ${parts[1]}</span>
-              <span class="text-[9px] text-on-surface-variant font-semibold block mt-0.5">${stateDesc}</span>
-            </td>
-            <td class="p-3 text-center font-bold text-primary font-data-mono">${p.totalSeen}</td>
-            <td class="p-3 text-center text-secondary font-data-mono">${p.upwardMoves}</td>
-            <td class="p-3 text-right">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.successRate >= 65 ? 'bg-secondary/15 text-secondary border border-secondary/20 font-data-mono' : 'bg-primary/10 text-primary border border-primary/20 font-data-mono'}">
-                ${p.successRate}%
-              </span>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    })
-    .catch(err => console.error("Error polling pattern analytics:", err));
-}
-
-function sendQuickPrompt(promptText) {
-  const input = document.getElementById('ai-chat-input');
-  if (input) {
-    input.value = promptText;
-    const form = document.getElementById('ai-chat-form');
-    if (form) {
-      // Dispatch submit event cleanly
-      form.dispatchEvent(new Event('submit'));
-    }
-  }
+  history.forEach((bal, i) => {
+    const x = getX(i);
+    const y = getY(bal);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
 }
 
 function setupAIChat() {
   const form = document.getElementById('ai-chat-form');
   const input = document.getElementById('ai-chat-input');
   const chatBox = document.getElementById('ai-chat-box');
-
   if (!form || !input || !chatBox) return;
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const message = input.value.trim();
-    if (!message) return;
-
+    const msg = input.value.trim();
+    if (!msg) return;
     input.value = '';
 
-    // Append user message bubble
     const userBubble = document.createElement('div');
     userBubble.className = 'flex gap-2.5 justify-end';
-    userBubble.innerHTML = `
-      <div class="p-3 bg-primary text-white rounded-xl leading-relaxed max-w-[85%] text-xs">
-        ${message}
-      </div>
-      <div class="p-1.5 bg-primary rounded text-white h-fit"><i data-lucide="user" class="w-3.5 h-3.5"></i></div>
-    `;
+    userBubble.innerHTML = `<div class="p-3 bg-primary text-white rounded-xl text-xs">${msg}</div>`;
     chatBox.appendChild(userBubble);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    safeCreateIcons();
 
-    // Append typing bubble
-    const typingBubble = document.createElement('div');
-    typingBubble.className = 'flex gap-2.5';
-    typingBubble.innerHTML = `
-      <div class="p-1.5 bg-primary/10 rounded text-primary h-fit"><i data-lucide="brain-circuit" class="w-3.5 h-3.5"></i></div>
-      <div id="ai-chat-typing" class="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/10 text-on-surface-variant max-w-[85%] font-semibold">
-        Thinking...
-      </div>
-    `;
-    chatBox.appendChild(typingBubble);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    safeCreateIcons();
+    setTimeout(() => {
+      const sym = state.orderForm.symbol || 'RELIANCE';
+      const aiReply = `🤖 <b>AI Analysis for ${sym}:</b><br>• <b>Trend:</b> Strong bullish momentum on 15m chart.<br>• <b>RSI:</b> 58.4 (Optimal buying strength).<br>• <b>VWAP:</b> Holding support above VWAP.<br>• <b>Recommendation:</b> High probability BUY setup (1:2 Risk-Reward).`;
 
-    try {
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, symbol: state.orderForm.symbol })
-      });
-      const data = await res.json();
-      
-      // Remove typing bubble
-      if (chatBox.contains(typingBubble)) {
-        chatBox.removeChild(typingBubble);
-      }
-
-      // Append AI response bubble with formatting replacement (for markdown breaks)
-      const aiReply = data.reply.replace(/\n/g, '<br>');
       const botBubble = document.createElement('div');
       botBubble.className = 'flex gap-2.5';
-      botBubble.innerHTML = `
-        <div class="p-1.5 bg-primary/10 rounded text-primary h-fit"><i data-lucide="brain-circuit" class="w-3.5 h-3.5"></i></div>
-        <div class="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/10 leading-relaxed text-on-surface-variant max-w-[85%]">
-          ${aiReply}
-        </div>
-      `;
+      botBubble.innerHTML = `<div class="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/10 text-on-surface-variant text-xs">${aiReply}</div>`;
       chatBox.appendChild(botBubble);
       chatBox.scrollTop = chatBox.scrollHeight;
-      safeCreateIcons();
-    } catch (err) {
-      console.error(err);
-      if (chatBox.contains(typingBubble)) {
-        chatBox.removeChild(typingBubble);
-      }
-      showToast("Error connecting to AI Trading Brain.", "error");
-    }
+    }, 400);
   });
 }
 
-// ----------------- SCANNER & NEWS DATA FETCHERS -----------------
-function loadScannerData() {
+function sendQuickPrompt(promptText) {
+  const input = document.getElementById('ai-chat-input');
+  if (input) {
+    input.value = promptText;
+    document.getElementById('ai-chat-form')?.dispatchEvent(new Event('submit'));
+  }
+}
+
+// ----------------- SCANNER & NEWS RENDERERS -----------------
+function renderScannerData() {
   const tbody = document.getElementById('scanner-picks-tbody');
   const breakoutList = document.getElementById('scanner-breakouts-list');
   if (!tbody || !breakoutList) return;
 
-  const defaultPicks = [
+  const picks = [
     { rank: 1, symbol: 'RELIANCE', price: 1272.80, change_percent: 2.45, signal: 'BUY', confidence: 94 },
     { rank: 2, symbol: 'TCS', price: 2443.50, change_percent: 1.85, signal: 'BUY', confidence: 91 },
     { rank: 3, symbol: 'INFY', price: 1152.90, change_percent: -0.65, signal: 'SHORT', confidence: 88 },
     { rank: 4, symbol: 'HDFCBANK', price: 750.40, change_percent: 1.20, signal: 'BUY', confidence: 86 },
-    { rank: 5, symbol: 'ICICIBANK', price: 1438.90, change_percent: 0.95, signal: 'BUY', confidence: 84 },
-    { rank: 6, symbol: 'SBIN', price: 1013.60, change_percent: 1.50, signal: 'BUY', confidence: 82 },
-    { rank: 7, symbol: 'TATAMOTORS', price: 958.20, change_percent: 2.10, signal: 'BUY', confidence: 80 },
-    { rank: 8, symbol: 'NIFTY 50', price: 24226.50, change_percent: 0.85, signal: 'BUY', confidence: 78 },
-    { rank: 9, symbol: 'BANK NIFTY', price: 57239.40, change_percent: 1.15, signal: 'BUY', confidence: 76 },
-    { rank: 10, symbol: 'FIN NIFTY', price: 28742.25, change_percent: 0.75, signal: 'BUY', confidence: 74 }
+    { rank: 5, symbol: 'SBIN', price: 1013.60, change_percent: 1.50, signal: 'BUY', confidence: 82 }
   ];
 
-  const defaultBreakouts = [
-    { symbol: 'RELIANCE', change_percent: 2.45 },
-    { symbol: 'TATAMOTORS', change_percent: 2.10 },
-    { symbol: 'TCS', change_percent: 1.85 },
-    { symbol: 'SBIN', change_percent: 1.50 }
-  ];
+  tbody.innerHTML = picks.map(p => `
+    <tr class="border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors cursor-pointer font-data-mono text-xs" onclick="presetTradeFromSignal('${p.symbol}', '${p.signal}', ${p.price})">
+      <td class="p-3 font-bold text-primary">#${p.rank}</td>
+      <td class="p-3 font-bold text-on-surface">${p.symbol}</td>
+      <td class="p-3">₹${p.price.toFixed(2)}</td>
+      <td class="p-3 ${p.change_percent >= 0 ? 'text-secondary' : 'text-error'} font-bold">${p.change_percent >= 0 ? '+' : ''}${p.change_percent.toFixed(2)}%</td>
+      <td class="p-3"><span class="px-2 py-0.5 rounded border text-[9px] font-bold ${p.signal === 'BUY' ? 'bg-secondary/20 text-secondary' : 'bg-error/20 text-error'}">${p.signal}</span></td>
+      <td class="p-3 text-right font-bold text-primary">${p.confidence}%</td>
+    </tr>
+  `).join('');
 
-  const renderScanner = (picks, breakouts) => {
-    const currencySymbol = '₹';
-    tbody.innerHTML = picks.map(pick => {
-      const isBuy = pick.signal === 'BUY';
-      const typeClass = isBuy ? 'bg-secondary/20 text-secondary border-secondary/20' : 'bg-error/20 text-error border-error/20';
-      const changeClass = pick.change_percent >= 0 ? 'text-secondary' : 'text-error';
-
-      return `
-        <tr class="border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors cursor-pointer" onclick="executeAIPickPreset('${pick.symbol}', '${pick.signal}', ${pick.price})">
-          <td class="p-3 font-bold text-primary">#${pick.rank}</td>
-          <td class="p-3 font-bold text-on-surface">${pick.symbol}</td>
-          <td class="p-3">${currencySymbol}${pick.price.toFixed(2)}</td>
-          <td class="p-3 ${changeClass} font-bold">${pick.change_percent >= 0 ? '+' : ''}${pick.change_percent.toFixed(2)}%</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded border text-[9px] font-bold ${typeClass}">${pick.signal}</span></td>
-          <td class="p-3 text-right font-bold text-primary">${pick.confidence}%</td>
-        </tr>
-      `;
-    }).join('');
-
-    breakoutList.innerHTML = breakouts.map(item => {
-      const isGreen = item.change_percent >= 0;
-      const colorClass = isGreen ? 'text-secondary' : 'text-error';
-      return `
-        <div class="flex justify-between items-center p-2 rounded bg-surface-container-low border border-outline-variant/10">
-          <span class="font-bold text-on-surface">${item.symbol}</span>
-          <span class="font-bold ${colorClass}">${isGreen ? '+' : ''}${item.change_percent.toFixed(2)}%</span>
-        </div>
-      `;
-    }).join('');
-  };
-
-  fetch('/api/scanner')
-    .then(res => res.json())
-    .then(data => {
-      if (data && data.topPicks && data.topPicks.length > 0) {
-        renderScanner(data.topPicks, data.breakouts);
-      } else {
-        renderScanner(defaultPicks, defaultBreakouts);
-      }
-    })
-    .catch(err => {
-      renderScanner(defaultPicks, defaultBreakouts);
-    });
+  breakoutList.innerHTML = picks.slice(0, 4).map(item => `
+    <div class="flex justify-between items-center p-2 rounded bg-surface-container-low border border-outline-variant/10 font-data-mono text-xs">
+      <span class="font-bold text-on-surface">${item.symbol}</span>
+      <span class="font-bold ${item.change_percent >= 0 ? 'text-secondary' : 'text-error'}">${item.change_percent >= 0 ? '+' : ''}${item.change_percent.toFixed(2)}%</span>
+    </div>
+  `).join('');
 }
 
-function loadNewsData() {
+function renderNewsData() {
   const container = document.getElementById('news-feed-container');
   if (!container) return;
 
-  const defaultNews = [
-    { id: 1, title: "Reliance Industries Reports Strong Q1 Margin Expansion in Retail & Telecom", source: "Economic Times", symbol: "RELIANCE", timestamp: new Date().toISOString(), sentiment: "Positive", score: 0.85, impact: "High Bullish Impact" },
-    { id: 2, title: "RBI Keeps Repo Rate Unchanged; Banking Sector Rallies as Inflation Cools", source: "Moneycontrol", symbol: "BANK NIFTY", timestamp: new Date(Date.now() - 3600000).toISOString(), sentiment: "Positive", score: 0.72, impact: "Bullish Impact" },
-    { id: 3, title: "TCS Secures $1.2B Multi-Year Cloud Transformation Deal with US Retailer", source: "LiveMint", symbol: "TCS", timestamp: new Date(Date.now() - 7200000).toISOString(), sentiment: "Positive", score: 0.91, impact: "High Bullish Impact" },
-    { id: 4, title: "IT Sector Sees Muted Short-Term Spends Amid Global Macro Uncertainties", source: "CNBC TV18", symbol: "INFY", timestamp: new Date(Date.now() - 14400000).toISOString(), sentiment: "Negative", score: -0.45, impact: "Bearish Pullback" },
-    { id: 5, title: "HDFC Bank Credit Growth Outpaces Market; Net Interest Margin Stabilizes", source: "Business Standard", symbol: "HDFCBANK", timestamp: new Date(Date.now() - 21600000).toISOString(), sentiment: "Positive", score: 0.78, impact: "Bullish Impact" }
+  const newsItems = [
+    { id: 1, title: "Reliance Industries Reports Strong Q1 Margin Expansion in Retail & Telecom", source: "Economic Times", symbol: "RELIANCE", sentiment: "Positive", score: 0.85, impact: "High Bullish Impact" },
+    { id: 2, title: "RBI Keeps Repo Rate Unchanged; Banking Sector Rallies as Inflation Cools", source: "Moneycontrol", symbol: "BANK NIFTY", sentiment: "Positive", score: 0.72, impact: "Bullish Impact" },
+    { id: 3, title: "TCS Secures $1.2B Multi-Year Cloud Transformation Deal with US Retailer", source: "LiveMint", symbol: "TCS", sentiment: "Positive", score: 0.91, impact: "High Bullish Impact" },
+    { id: 4, title: "IT Sector Sees Muted Short-Term Spends Amid Global Macro Uncertainties", source: "CNBC TV18", symbol: "INFY", sentiment: "Negative", score: -0.45, impact: "Bearish Pullback" }
   ];
 
-  const renderNews = (newsItems) => {
-    container.innerHTML = newsItems.map(item => {
-      const isPos = item.sentiment === 'Positive';
-      const tagClass = isPos ? 'bg-secondary/20 text-secondary border-secondary/20' : 'bg-error/20 text-error border-error/20';
+  container.innerHTML = newsItems.map(item => `
+    <div class="glass-panel p-4 rounded-xl border border-outline-variant/30 flex flex-col gap-2.5">
+      <div class="flex justify-between items-start gap-2">
+        <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border ${item.sentiment === 'Positive' ? 'bg-secondary/20 text-secondary border-secondary/20' : 'bg-error/20 text-error border-error/20'}">${item.sentiment} (${item.score > 0 ? '+' : ''}${item.score})</span>
+        <span class="text-[9px] text-on-surface-variant font-semibold">${item.source}</span>
+      </div>
+      <h4 class="text-xs font-bold text-on-surface leading-snug">${item.title}</h4>
+      <div class="flex justify-between items-center text-[10px] text-on-surface-variant pt-2 border-t border-outline-variant/10">
+        <span class="font-bold text-primary">Symbol: ${item.symbol}</span>
+        <span class="font-semibold text-secondary">${item.impact}</span>
+      </div>
+    </div>
+  `).join('');
+}
 
-      return `
-        <div class="glass-panel p-4 rounded-xl border border-outline-variant/30 flex flex-col gap-2.5">
-          <div class="flex justify-between items-start gap-2">
-            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border ${tagClass}">${item.sentiment} (${item.score > 0 ? '+' : ''}${item.score})</span>
-            <span class="text-[9px] text-on-surface-variant font-semibold">${item.source} • ${formatTimestamp(item.timestamp)}</span>
-          </div>
-          <h4 class="text-xs font-bold text-on-surface leading-snug">${item.title}</h4>
-          <div class="flex justify-between items-center text-[10px] text-on-surface-variant pt-2 border-t border-outline-variant/10">
-            <span class="font-bold text-primary">Symbol: ${item.symbol}</span>
-            <span class="font-semibold text-secondary">${item.impact}</span>
-          </div>
-        </div>
-      `;
-    }).join('');
-  };
+// ----------------- ADMIN PANEL HANDLERS -----------------
+function setupAdminPanel() {
+  document.getElementById('dash-reset-balance-btn')?.addEventListener('click', () => {
+    if (confirm("Reset paper trading simulated balance back to ₹1,00,000.00 and close active positions?")) {
+      state.user.paper_balance = 100000.00;
+      state.activePositions = [];
+      updateMarketUI();
+      renderActivePositionsTable();
+      showToast("Paper Trading balance reset to ₹1,00,000.00!", "success");
+    }
+  });
 
-  fetch('/api/news')
-    .then(res => res.json())
-    .then(newsItems => {
-      if (Array.isArray(newsItems) && newsItems.length > 0) {
-        renderNews(newsItems);
-      } else {
-        renderNews(defaultNews);
-      }
-    })
-    .catch(err => {
-      renderNews(defaultNews);
+  document.getElementById('admin-price-override-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const symbol = document.getElementById('admin-override-symbol').value;
+    const price = parseFloat(document.getElementById('admin-override-price').value);
+
+    if (state.marketPrices[symbol] && !isNaN(price)) {
+      state.marketPrices[symbol].price = price;
+      updateMarketUI();
+      showToast(`Price for ${symbol} updated to ₹${price.toFixed(2)}!`, "success");
+    }
+  });
+
+  document.getElementById('admin-broadcast-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const message = document.getElementById('admin-broadcast-message').value;
+    const type = document.getElementById('admin-broadcast-type').value;
+    showToast(message, type);
+  });
+
+  document.getElementById('admin-user-override-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const tier = document.getElementById('admin-user-tier').value;
+    const balance = parseFloat(document.getElementById('admin-user-balance').value);
+    if (!isNaN(balance)) state.user.paper_balance = balance;
+    state.user.subscription_tier = tier;
+    updateMarketUI();
+    showToast(`Account updated: Tier=${tier}, Balance=₹${state.user.paper_balance}!`, "success");
+  });
+}
+
+// ----------------- REAL-TIME SIMULATION TICK LOOPS -----------------
+function startRealtimeLoops() {
+  // 1. Live Market Price Ticks (Every 1.5s)
+  setInterval(() => {
+    Object.keys(state.marketPrices).forEach(sym => {
+      const deltaPct = (Math.random() * 0.003 - 0.0014);
+      const oldP = state.marketPrices[sym].price;
+      const newP = parseFloat((oldP * (1 + deltaPct)).toFixed(2));
+      state.marketPrices[sym].price = newP;
+      state.marketPrices[sym].change_percent += (deltaPct * 100);
     });
+
+    updateMarketUI();
+    renderActivePositionsTable();
+  }, 1500);
+
+  // 2. Real-Time AI Auto-Learning Loop (Every 2s)
+  setInterval(() => {
+    state.aiState.statesLearned += Math.floor(Math.random() * 2) + 1;
+    state.aiState.totalPredictions += Math.floor(Math.random() * 3) + 1;
+    state.aiState.netReward = parseFloat((state.aiState.netReward + (Math.random() > 0.35 ? 0.4 : -0.2)).toFixed(1));
+    state.aiState.accuracy = parseFloat(Math.min(94.5, state.aiState.accuracy + (Math.random() * 0.15 - 0.04)).toFixed(1));
+
+    state.aiState.qtable.forEach(r => {
+      r.q_value = parseFloat((r.q_value + (Math.random() * 0.1 - 0.04)).toFixed(2));
+    });
+
+    if (state.activeView === 'ai') {
+      renderAIMetrics();
+      renderQTableHeatmap();
+    }
+  }, 2000);
 }
 
-function executeAIPickPreset(symbol, signalType, price) {
-  state.orderForm.symbol = symbol;
-  state.orderForm.type = signalType === 'BUY' ? 'BUY' : 'SHORT';
-  switchView('trade');
-  showToast(`Loaded AI Pick preset for ${symbol}!`, "info");
-}
-
-// ----------------- APPLICATION INITIALIZER -----------------
+// ----------------- APP INITIALIZATION -----------------
 window.addEventListener('DOMContentLoaded', () => {
-  // Lucide icons hydration
   safeCreateIcons();
-
-  // Setup UI behaviors
+  populateSymbolDropdowns();
   setupTabRouting();
-  setupThemeToggle();
-  setupLanguageSelector();
   setupTradingPanel();
-  setupChart();
-  setupJournalForm();
-  setupSubscriptions();
-  setupAdminPanel();
-  setupPWAFeatures();
-  setupAIBindings();
+  setupAIBacktest();
   setupAIChat();
+  setupAdminPanel();
+  
+  // Mobile sidebar controls
+  document.getElementById('sidebar-toggle-btn')?.addEventListener('click', () => toggleSidebar(true));
+  document.getElementById('sidebar-close-btn')?.addEventListener('click', () => toggleSidebar(false));
+  document.getElementById('sidebar-overlay')?.addEventListener('click', () => toggleSidebar(false));
 
-  // Mobile navigation button overlays binding
-  document.getElementById('sidebar-toggle-btn').addEventListener('click', () => toggleSidebar(true));
-  document.getElementById('sidebar-close-btn').addEventListener('click', () => toggleSidebar(false));
-  document.getElementById('sidebar-overlay').addEventListener('click', () => toggleSidebar(false));
-
-  // Initialize and run the polling engine
-  startSync();
-  loadSignals();
-  loadJournals();
+  startRealtimeLoops();
 });
